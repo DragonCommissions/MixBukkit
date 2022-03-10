@@ -1,0 +1,3 @@
+main: com.dragoncommissions.testmixin.TestMixin
+name: TestMixin
+version: 1.0
