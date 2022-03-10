@@ -5,6 +5,6 @@ import org.objectweb.asm.tree.MethodNode;
 
 public interface MixinAction {
 
-    void action(MethodNode method);
+    void action(Class<?> owner, MethodNode method);
 
 }

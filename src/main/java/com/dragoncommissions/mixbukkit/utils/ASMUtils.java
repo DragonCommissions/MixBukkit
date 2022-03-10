@@ -1,5 +1,6 @@
 package com.dragoncommissions.mixbukkit.utils;
 
+import com.dragoncommissions.mixbukkit.MixBukkit;
 import javassist.CtClass;
 import javassist.bytecode.Opcode;
 import lombok.SneakyThrows;
@@ -71,11 +72,22 @@ public class ASMUtils {
         else if (type == short.class) result = "I" + result;
         else if (type == boolean.class) result = "I" + result;
         else result = "A" + result;
-        if (varNumber <= 3) {
-            result = result + "_" + varNumber;
-            return new InsnNode(((int) Opcode.class.getDeclaredField(result).get(null)));
-        }
-        return new VarInsnNode(((int) Opcode.class.getDeclaredField(result).get(null)), varNumber);
+        return new VarInsnNode(((int) Opcode.class.getField(result).get(null)), varNumber);
+    }
+
+    @SneakyThrows
+    public static AbstractInsnNode genReturnNode(Class<?> type) {
+        String result = "RETURN";
+        if (type == byte.class) result = "I" + result;
+        else if (type == char.class) result = "I" + result;
+        else if (type == double.class) result = "D" + result;
+        else if (type == float.class) result = "F" + result;
+        else if (type == int.class) result = "I" + result;
+        else if (type == long.class) result = "L" + result;
+        else if (type == short.class) result = "I" + result;
+        else if (type == boolean.class) result = "I" + result;
+        else result = "A" + result;
+        return new InsnNode(((int) Opcode.class.getField(result).get(null)));
     }
 
     @SneakyThrows
@@ -102,6 +114,15 @@ public class ASMUtils {
     public static byte[] fromClassNode(ClassNode node) {
         ClassWriter writer = new ClassWriter(ClassWriter.COMPUTE_MAXS | ClassWriter.COMPUTE_FRAMES);
         node.accept(writer);
+        if (MixBukkit.DEBUG) {
+            try {
+                File outFile = new File("/tmp/" + UUID.randomUUID() + ".class");
+                System.out.println("Wrote to " + outFile);
+                FileOutputStream outputStream = new FileOutputStream(outFile);
+                outputStream.write(writer.toByteArray());
+                outputStream.close();
+            } catch (Exception ignored) {}
+        }
         return writer.toByteArray();
     }
 
@@ -112,7 +133,7 @@ public class ASMUtils {
             return new InsnNode(Opcode.ICONST_M1);
         }
         if (value <= 5 && value >= 0) {
-            return new InsnNode(Opcode.class.getDeclaredField("ICONST_" + value).getInt(null));
+            return new InsnNode(value + 3);
         }
         if (value < 255) {
             return new IntInsnNode(Opcode.BIPUSH, value);
@@ -153,7 +174,7 @@ public class ASMUtils {
         else if (type == long.class) return new FieldInsnNode(Opcode.GETSTATIC, Long.class.getName().replace(".", "/"), "TYPE", "Ljava/lang/Class;");
         else if (type == short.class) return new FieldInsnNode(Opcode.GETSTATIC, Short.class.getName().replace(".", "/"), "TYPE", "Ljava/lang/Class;");
         else if (type == boolean.class) return new FieldInsnNode(Opcode.GETSTATIC, Boolean.class.getName().replace(".", "/"), "TYPE", "Ljava/lang/Class;");
-        return new LdcInsnNode(type);
+        return new LdcInsnNode(Type.getType(type));
     }
 
     public static InsnList castToObject(int varLocation, Class<?> type) {

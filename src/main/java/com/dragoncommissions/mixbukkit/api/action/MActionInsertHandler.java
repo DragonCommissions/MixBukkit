@@ -21,7 +21,7 @@ public class MActionInsertHandler implements MixinAction {
 
 
     @Override
-    public void action(MethodNode method) {
+    public void action(Class<?> owner, MethodNode method) {
         // Copy hookLocator.getLineNumber(method) to listHooks
         List<Integer> hooks = hookLocator.getLineNumber(method.instructions);
 
