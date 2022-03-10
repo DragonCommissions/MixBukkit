@@ -38,3 +38,6 @@ mixinPlugin.registerMixin("Hook Tick", // Any name you want, use to identify, so
                     new Class[] {} // Arguments. This method has no argument, so leave it empty.
         );
 ```
+
+## Gallery
+![](https://storage.gato.host/61068f9c11c02e002297ebf2/ZPMCC0j-t.png)
