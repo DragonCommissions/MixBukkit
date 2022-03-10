@@ -2,11 +2,9 @@ package com.dragoncommissions.mixbukkit.api.handler;
 
 import com.dragoncommissions.mixbukkit.utils.ASMUtils;
 import javassist.bytecode.Opcode;
-import org.bukkit.Bukkit;
 import org.objectweb.asm.tree.*;
 
 import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -54,7 +52,6 @@ public class MHandlerMethod implements MixinHandler {
         out.add(new InsnNode(3));
         out.add(new VarInsnNode(54, varNumOf13));
         out.add(label1);
-//        out.add(new FrameNode(1, 3, new Object[] {"[Lorg/bukkit/plugin/Plugin;", 1, 1}, 0, null));
         out.add(new VarInsnNode(21, varNumOf13));
         out.add(new VarInsnNode(21, varNumOf12));
         out.add(new JumpInsnNode(162, label7));
@@ -106,14 +103,10 @@ public class MHandlerMethod implements MixinHandler {
         out.add(label6);
         out.add(new JumpInsnNode(167, label7));
         out.add(label7);
-//        out.add(new FrameNode(2, 3, new Object[] {null, null, null}, 0, null));
         out.add(new JumpInsnNode(167, label9));
         out.add(label8);
-//        out.add(new FrameNode(4, 0, null, 1, new Object[] {"java/lang/Exception"}));
         out.add(new VarInsnNode(58, varNumOf11));
         out.add(label9);
-//        out.add(new FrameNode(3, 0, null, 0, null));
-//        method.invisibleLocalVariableAnnotations
         method.tryCatchBlocks.add(new TryCatchBlockNode(label0, label7, label8, "java/lang/Exception"));
         method.localVariables.add(new LocalVariableNode("classLoader", "Ljava/lang/ClassLoader;", null, label1, label2, varNumOf15));
         method.localVariables.add(new LocalVariableNode("loadedClass", "Ljava/lang/Class;", "Ljava/lang/Class<*>;", label3, label2, varNumOf16));
