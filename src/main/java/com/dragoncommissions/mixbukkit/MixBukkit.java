@@ -4,8 +4,10 @@ import com.dragoncommissions.mixbukkit.agent.ClassesManager;
 import com.dragoncommissions.mixbukkit.agent.JVMAttacher;
 import com.dragoncommissions.mixbukkit.api.ObfMap;
 import com.dragoncommissions.mixbukkit.api.MixinPlugin;
+import com.dragoncommissions.mixbukkit.utils.ASMUtils;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.SneakyThrows;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.plugin.Plugin;
@@ -17,8 +19,14 @@ import org.bukkit.plugin.java.JavaPluginLoader;
 import java.io.File;
 import java.io.InputStream;
 import java.lang.instrument.Instrumentation;
+import java.lang.reflect.Method;
+import java.net.URL;
+import java.net.URLClassLoader;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.jar.JarFile;
 
 public class MixBukkit extends JavaPlugin {
 
@@ -36,6 +44,7 @@ public class MixBukkit extends JavaPlugin {
 
     public static ClassesManager classesManager;
 
+
     @Getter
     private static final Map<String, MixinPlugin> plugins = new HashMap<>();
 
@@ -45,7 +54,9 @@ public class MixBukkit extends JavaPlugin {
     }
 
     @Override
+    @SneakyThrows
     public void onEnable() {
+        URLClassLoader parent = ((URLClassLoader) getClassLoader().getParent());
         pluginFile = getFile();
 
         getServer().getConsoleSender().sendMessage(ChatColor.GREEN   + "=-=-=-=-= MixBukkit Loader =-=-=-=-=");
@@ -77,7 +88,6 @@ public class MixBukkit extends JavaPlugin {
         getServer().getConsoleSender().sendMessage(ChatColor.GREEN   + "- Finished preparing class pool!");
         getServer().getConsoleSender().sendMessage(ChatColor.GREEN   + "");
         getServer().getConsoleSender().sendMessage(ChatColor.GREEN   + "");
-        getServer().getConsoleSender().sendMessage(ChatColor.GREEN   + "");
         getServer().getConsoleSender().sendMessage(ChatColor.GREEN   + "[!] Finished loading MixBukkit!");
         getServer().getConsoleSender().sendMessage(ChatColor.GREEN   + "=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-");
         PREPARED = true;
@@ -88,9 +98,29 @@ public class MixBukkit extends JavaPlugin {
         if (mixinPlugin != null) {
             return mixinPlugin;
         }
-        return new MixinPlugin(plugin, new ObfMap(membersMapStream));
+        mixinPlugin = new MixinPlugin(plugin, new ObfMap(membersMapStream));
+        plugins.put(plugin.getName(), mixinPlugin);
+        try {
+            Method getFile = JavaPlugin.class.getDeclaredMethod("getFile");
+            getFile.setAccessible(true);
+            File pluginFile = ((File) getFile.invoke(plugin));
+            pluginFile = pluginFile.getAbsoluteFile();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+
+        return mixinPlugin;
     }
 
+    @SneakyThrows
+    public static void addLibrary(File file) {
+        INSTRUMENTATION.appendToSystemClassLoaderSearch(new JarFile(file));
+
+        if (DEBUG) {
+            Bukkit.getConsoleSender().sendMessage(ChatColor.DARK_GRAY + "// Loading " + file.getAbsolutePath());
+        }
+    }
 
     @AllArgsConstructor
     @Getter

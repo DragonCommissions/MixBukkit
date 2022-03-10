@@ -2,16 +2,21 @@ package com.dragoncommissions.mixbukkit.api;
 
 import com.dragoncommissions.mixbukkit.MixBukkit;
 import com.dragoncommissions.mixbukkit.agent.ClassesManager;
+import com.dragoncommissions.mixbukkit.api.action.MixinAction;
 import com.dragoncommissions.mixbukkit.api.handler.MHandlerMethod;
 import com.dragoncommissions.mixbukkit.api.handler.MixinHandler;
 import com.dragoncommissions.mixbukkit.api.locator.HookLocator;
 import com.dragoncommissions.mixbukkit.utils.ASMUtils;
 import javassist.CtClass;
+import lombok.Getter;
 import lombok.SneakyThrows;
+import net.minecraft.world.level.World;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.plugin.Plugin;
 import org.objectweb.asm.ClassReader;
+import org.objectweb.asm.ClassVisitor;
+import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.InsnList;
@@ -20,6 +25,7 @@ import org.objectweb.asm.tree.MethodNode;
 import java.lang.instrument.ClassDefinition;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -27,7 +33,9 @@ import java.util.List;
 
 public class MixinPlugin {
 
+    @Getter
     private ObfMap obfMap;
+    @Getter
     private Plugin plugin;
 
     private List<String> registeredMixins = new ArrayList<>();
@@ -38,7 +46,7 @@ public class MixinPlugin {
     }
 
     @SneakyThrows
-    public boolean registerMixin(String namespace, HookLocator hookLocator, MixinHandler mixinHandler, Class<?> owner, String deObfMethodName, Class<?> returnType, Class<?>... arguments) {
+    public boolean registerMixin(String namespace, MixinAction mixinAction, Class<?> owner, String deObfMethodName, Class<?> returnType, Class<?>... arguments) {
         if (registeredMixins.contains(namespace)) {
             if (MixBukkit.DEBUG) {
                 Bukkit.getConsoleSender().sendMessage(ChatColor.DARK_GRAY + "// Mixin with namespace: " + namespace + " is already registered! Skipping...");
@@ -52,44 +60,24 @@ public class MixinPlugin {
         if (MixBukkit.DEBUG) {
             Bukkit.getConsoleSender().sendMessage(ChatColor.DARK_GRAY + "// Obfuscated method name: " + obfMethodName);
         }
-        CtClass ctClass = ClassesManager.getClass(owner.getName());
-        if (ctClass == null) {
+
+        ClassNode classNode = ClassesManager.getClassNode(owner.getName());
+        if (classNode == null) {
             Bukkit.getConsoleSender().sendMessage(ChatColor.RED + "[!] Failed to load mixin: " + plugin.getName() + ":" + namespace + ", Reason: Could not find target class: " + owner.getName());
             return false;
         }
-        ClassNode classNode = ASMUtils.toClassNode(ctClass);
         for (MethodNode method : classNode.methods) {
             if (method.name.equals(obfMethodName) && method.desc.equals(descriptor)) {
-
                 if (MixBukkit.DEBUG) {
                     Bukkit.getConsoleSender().sendMessage(ChatColor.DARK_GRAY + "// Found Method to hook!");
                 }
 
-                // Copy hookLocator.getLineNumber(method) to listHooks
-                int[] hooks = hookLocator.getLineNumber(method);
-                List<Integer> listHooks = new ArrayList<>();
-                for (int hook : hooks) {
-                    listHooks.add(hook);
-                }
+                mixinAction.action(method);
 
-                // Copy mixinHandler.getInstructions() to insnList
-                InsnList insnList = new InsnList();
-                AbstractInsnNode[] instructions = mixinHandler.getInstructions();
-                for (AbstractInsnNode insnNode : instructions) {
-                    insnList.add(insnNode);
-                }
-
-                // Hook!
-                InsnList newInstructions = new InsnList();
-                for (int i = 0; i < method.instructions.size(); i++) {
-                    if (listHooks.contains(i)) {
-                        newInstructions.add(insnList);
-                    }
-                    newInstructions.add(method.instructions.get(0));
-                }
-                method.instructions = newInstructions;
+                byte[] data = ASMUtils.fromClassNode(classNode);
                 try {
-                    MixBukkit.INSTRUMENTATION.redefineClasses(new ClassDefinition(owner, ASMUtils.fromClassNode(classNode)));
+                    MixBukkit.INSTRUMENTATION.redefineClasses(new ClassDefinition(owner, data));
+                    ClassesManager.classNodes.put(owner.getName(), classNode);
                 } catch (Exception e) {
                     e.printStackTrace();
                     Bukkit.getConsoleSender().sendMessage(ChatColor.RED + "[!] Failed to load mixin: " + plugin.getName() + ":" + namespace + ", Reason: Could not redefine class: " + owner.getSimpleName());
