@@ -38,7 +38,7 @@ public class MActionInsertHandler implements MixinAction {
         InsnList newInstructions = new InsnList();
         for (int i = 0; i < method.instructions.size(); i++) {
             if (hooks.contains(i)) {
-                AbstractInsnNode[] instructions = mixinHandler.getInstructions(method, highestVarNum);
+                InsnList instructions = mixinHandler.getInstructions(method, highestVarNum);
                 for (AbstractInsnNode instruction : instructions) {
                     newInstructions.add(instruction);
                     if (instruction instanceof VarInsnNode) {

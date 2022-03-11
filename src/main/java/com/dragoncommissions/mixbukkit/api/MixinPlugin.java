@@ -58,10 +58,20 @@ public class MixinPlugin {
                     Bukkit.getConsoleSender().sendMessage(ChatColor.DARK_GRAY + "// Found Method to hook!");
                 }
 
+                if (MixBukkit.DEBUG) {
+                    Bukkit.getConsoleSender().sendMessage(ChatColor.DARK_GRAY + "// Processing...");
+                }
                 mixinAction.action(owner, method);
 
+                if (MixBukkit.DEBUG) {
+                    Bukkit.getConsoleSender().sendMessage(ChatColor.DARK_GRAY + "// Assembling...");
+                }
                 byte[] data = ASMUtils.fromClassNode(classNode);
                 try {
+                    if (MixBukkit.DEBUG) {
+                        Bukkit.getConsoleSender().sendMessage(ChatColor.DARK_GRAY + "// Redefining class...");
+                    }
+
                     MixBukkit.INSTRUMENTATION.redefineClasses(new ClassDefinition(owner, data));
                     ClassesManager.classNodes.put(owner.getName(), classNode);
                 } catch (Exception e) {
