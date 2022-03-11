@@ -26,6 +26,7 @@ public class MActionMethodCallReplacer implements MixinAction {
         int varNumOf15 = latestVarCount++;
         int varNumOf16 = latestVarCount++;
         int varNumOf17 = latestVarCount++;
+        int varNumOf18 = latestVarCount++;
 
         LabelNode label0 = new LabelNode();
         LabelNode label1 = new LabelNode();
@@ -37,6 +38,7 @@ public class MActionMethodCallReplacer implements MixinAction {
         LabelNode label7 = new LabelNode();
         LabelNode label8 = new LabelNode();
         LabelNode label9 = new LabelNode();
+        LabelNode label10 = new LabelNode();
 
         out.add(label0);
         out.add(new MethodInsnNode(184, "org/bukkit/Bukkit", "getPluginManager", "()Lorg/bukkit/plugin/PluginManager;", false));
@@ -50,7 +52,7 @@ public class MActionMethodCallReplacer implements MixinAction {
         out.add(label1);
         out.add(new VarInsnNode(21, varNumOf13));
         out.add(new VarInsnNode(21, varNumOf12));
-        out.add(new JumpInsnNode(162, label9));
+        out.add(new JumpInsnNode(162, label7));
         out.add(new VarInsnNode(25, varNumOf11));
         out.add(new VarInsnNode(21, varNumOf13));
         out.add(new InsnNode(50));
@@ -84,23 +86,31 @@ public class MActionMethodCallReplacer implements MixinAction {
         out.add(new InsnNode(1));
         out.add(ASMUtils.pushInt(handler.getParameterTypes().length));
         out.add(new TypeInsnNode(189, "java/lang/Object"));
+        int baseNumber = isTargetStatic?0:1;
         for (int i = 0; i < handler.getParameterTypes().length; i++) {
             out.add(new InsnNode(Opcode.DUP));
             out.add(ASMUtils.pushInt(i));
-            InsnList list = ASMUtils.castToObject(0, handler.getParameterTypes()[i]);
+            InsnList list = ASMUtils.castToObject(baseNumber + i, handler.getParameterTypes()[i]);
             for (AbstractInsnNode insnNode : list) {
                 out.add(insnNode);
             }
             out.add(new InsnNode(Opcode.AASTORE));
         }
         out.add(new MethodInsnNode(182, "java/lang/reflect/Method", "invoke", "(Ljava/lang/Object;[Ljava/lang/Object;)Ljava/lang/Object;", false));
-        out.add(new JumpInsnNode(Opcode.GOTO, label9));
+        out.add(new VarInsnNode(Opcode.ASTORE, varNumOf18));
+//        out.add(new InsnNode(87)); // This pops the return value of it
+        out.add(new JumpInsnNode(167, label10));
+        out.add(label6);
+        out.add(new JumpInsnNode(167, label7));
+        out.add(label7);
+        out.add(new JumpInsnNode(167, label9));
         out.add(label8);
         out.add(new VarInsnNode(58, varNumOf11));
-        out.add(new InsnNode(Opcode.ACONST_NULL));
-        out.add(new InsnNode(Opcode.ARETURN));
         out.add(label9);
         out.add(new InsnNode(Opcode.ACONST_NULL));
+        out.add(new VarInsnNode(Opcode.ASTORE, varNumOf18));
+        out.add(label10);
+        out.add(new VarInsnNode(Opcode.ALOAD, varNumOf18));
         out.add(new InsnNode(Opcode.ARETURN));
         method.tryCatchBlocks.add(new TryCatchBlockNode(label0, label5, label8, "java/lang/Exception"));
         method.localVariables.add(new LocalVariableNode("classLoader", "Ljava/lang/ClassLoader;", null, label1, label2, varNumOf15));
