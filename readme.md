@@ -1,4 +1,4 @@
-# MixBukkit
+![MixBukkit](https://github.com/fan87/MixBukkit/raw/master/MixBukkit.png)
 MixBukkit is a mixin framework inspired by SpongePowered's Mixin framework using ASM.
 
 ## When will you need it
