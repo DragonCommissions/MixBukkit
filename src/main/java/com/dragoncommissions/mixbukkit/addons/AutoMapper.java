@@ -114,7 +114,7 @@ public class AutoMapper {
 
     }
 
-    private static String getMCVersion() {
+    public static String getMCVersion() {
         return Bukkit.getBukkitVersion().split("-")[0];
     }
 
@@ -123,7 +123,7 @@ public class AutoMapper {
         // Remapped option is only available after 1.17
     }
 
-    private static boolean isObfuscatedBuild() {
+    public static boolean isObfuscatedBuild() {
         try {
             Class<?> aClass = Class.forName("net.minecraft.world.entity.EntityLiving");
             return true;

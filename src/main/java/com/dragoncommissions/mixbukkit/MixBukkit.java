@@ -1,5 +1,6 @@
 package com.dragoncommissions.mixbukkit;
 
+import com.dragoncommissions.mixbukkit.addons.AutoMapper;
 import com.dragoncommissions.mixbukkit.agent.ClassesManager;
 import com.dragoncommissions.mixbukkit.agent.JVMAttacher;
 import com.dragoncommissions.mixbukkit.api.ObfMap;
@@ -62,7 +63,8 @@ public class MixBukkit extends JavaPlugin {
         getServer().getConsoleSender().sendMessage(ChatColor.GREEN   + "=-=-=-=-= MixBukkit Loader =-=-=-=-=");
         getServer().getConsoleSender().sendMessage(ChatColor.YELLOW  + "Version: " + VERSION);
         getServer().getConsoleSender().sendMessage(ChatColor.YELLOW  + "Build Type: " + BUILD_TYPE);
-        getServer().getConsoleSender().sendMessage(ChatColor.YELLOW  + "Agent: " + pluginFile);
+        getServer().getConsoleSender().sendMessage(ChatColor.YELLOW  + "MC Version: " + AutoMapper.getMCVersion());
+        getServer().getConsoleSender().sendMessage(ChatColor.YELLOW  + "Server Remapped: " + !AutoMapper.isObfuscatedBuild());
         getServer().getConsoleSender().sendMessage(ChatColor.YELLOW  + "");
         if (!SAFE_MODE) {
             getServer().getConsoleSender().sendMessage(ChatColor.DARK_GRAY + "// Warning: Safe mode is disabled! It might load invalid class and crash the Server/JVM");
