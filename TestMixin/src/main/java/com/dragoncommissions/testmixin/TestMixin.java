@@ -1,6 +1,7 @@
 package com.dragoncommissions.testmixin;
 
 import com.dragoncommissions.mixbukkit.MixBukkit;
+import com.dragoncommissions.mixbukkit.addons.AutoMapper;
 import com.dragoncommissions.mixbukkit.api.MixinPlugin;
 import com.dragoncommissions.mixbukkit.api.action.impl.MActionInsertShellCode;
 import com.dragoncommissions.mixbukkit.api.locator.impl.HLocatorTop;
@@ -21,7 +22,7 @@ public class TestMixin extends JavaPlugin {
 
     @Override
     public void onEnable() {
-        MixinPlugin plugin = MixBukkit.registerMixinPlugin(this, TestMixin.class.getClassLoader().getResourceAsStream("mapping.csrg"));
+        MixinPlugin plugin = MixBukkit.registerMixinPlugin(this, AutoMapper.getMappingAsStream());
         try {
             plugin.registerMixin(
                     "Hurt Test",

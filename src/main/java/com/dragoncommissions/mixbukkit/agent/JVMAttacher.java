@@ -32,7 +32,7 @@ public class JVMAttacher {
 
     @SneakyThrows
     public void attach() {
-        JvmSelfAttach.init(new File("tmp"));
+        JvmSelfAttach.init(new File(System.getProperty("java.io.tmpdir")));
         MixBukkit.INSTRUMENTATION = JvmSelfAttach.getInstrumentation();
 
     }

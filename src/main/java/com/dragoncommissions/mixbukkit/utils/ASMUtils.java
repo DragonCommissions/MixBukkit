@@ -6,7 +6,6 @@ import javassist.bytecode.Opcode;
 import lombok.SneakyThrows;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
-import org.bukkit.plugin.Plugin;
 import org.objectweb.asm.*;
 import org.objectweb.asm.tree.*;
 
@@ -122,10 +121,10 @@ public class ASMUtils {
             throw e;
         }
 
-        if (MixBukkit.DEBUG) {
+        if (MixBukkit.WRITE_TRANSFORMED_CLASS) {
             try {
-                File outFile = new File("/tmp/" + UUID.randomUUID() + ".class");
-                System.out.println("Wrote to " + outFile);
+                File outFile = new File(System.getProperty("java.io.tmpdir"), UUID.randomUUID() + ".class");
+                Bukkit.getConsoleSender().sendMessage(ChatColor.DARK_GRAY + "// Wrote output class to " + outFile);
                 FileOutputStream outputStream = new FileOutputStream(outFile);
                 outputStream.write(writer.toByteArray());
                 outputStream.close();

@@ -25,13 +25,14 @@ import java.util.jar.JarFile;
 
 public class MixBukkit extends JavaPlugin {
 
-    public final static String VERSION                            = "0.1";
-    public final static BuildType BUILD_TYPE                      = BuildType.SNAPSHOT;
-    public static boolean DEBUG                                   = BUILD_TYPE.isDevBuild();
-    public static boolean SAFE_MODE = !DEBUG;
-    public static Instrumentation INSTRUMENTATION                 = null;
-    public static boolean PREPARED                                = false;
-    public static BukkitErrorOutputStream ERROR_OUTPUT_STREAM     = new BukkitErrorOutputStream();
+    public final static String VERSION                              = "0.1";
+    public final static BuildType BUILD_TYPE                        = BuildType.SNAPSHOT;
+    public static boolean DEBUG                                     = BUILD_TYPE.isDevBuild();
+    public static boolean WRITE_TRANSFORMED_CLASS                   = false;
+    public static boolean SAFE_MODE                                 = !DEBUG;
+    public static Instrumentation INSTRUMENTATION                   = null;
+    public static boolean PREPARED                                  = false;
+    public static BukkitErrorOutputStream ERROR_OUTPUT_STREAM       = new BukkitErrorOutputStream();
 
     @Getter
     private File pluginFile;
@@ -68,6 +69,13 @@ public class MixBukkit extends JavaPlugin {
         }
         if (!DEBUG) {
             getServer().getConsoleSender().sendMessage(ChatColor.DARK_GRAY + "// If you wish to see debug messages, please enable \"debug-mode\" in your config file");
+        } else {
+            if (!WRITE_TRANSFORMED_CLASS) {
+                getServer().getConsoleSender().sendMessage(ChatColor.DARK_GRAY + "// If you wish to see transformed version of class (for testing purposes), you can enable \"write-transformed-class\" in config!");
+            }
+        }
+        if (WRITE_TRANSFORMED_CLASS) {
+            getServer().getConsoleSender().sendMessage(ChatColor.DARK_GRAY + "// Write output class enabled! Transformed classes will be renamed and go into your temp folder.");
         }
         getServer().getConsoleSender().sendMessage(ChatColor.YELLOW  + "");
         getServer().getConsoleSender().sendMessage(ChatColor.YELLOW  + "~~ Started loading ~~");
@@ -107,8 +115,10 @@ public class MixBukkit extends JavaPlugin {
             config.load(configFile);
             if (!config.contains("safe-mode")) config.set("safe-mode", SAFE_MODE);
             if (!config.contains("debug-mode")) config.set("debug-mode", DEBUG);
+            if (!config.contains("write-transformed-class")) config.set("write-transformed-class", WRITE_TRANSFORMED_CLASS);
             SAFE_MODE = config.getBoolean("safe-mode");
             DEBUG = config.getBoolean("debug-mode");
+            WRITE_TRANSFORMED_CLASS = config.getBoolean("write-transformed-class");
             config.save(configFile);
         } catch (Exception e) {
             e.printStackTrace();
