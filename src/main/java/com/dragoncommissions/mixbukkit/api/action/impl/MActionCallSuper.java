@@ -1,7 +1,8 @@
-package com.dragoncommissions.mixbukkit.api.action;
+package com.dragoncommissions.mixbukkit.api.action.impl;
 
 import com.dragoncommissions.mixbukkit.api.MixinPlugin;
 import com.dragoncommissions.mixbukkit.api.ObfMap;
+import com.dragoncommissions.mixbukkit.api.action.MixinAction;
 import com.dragoncommissions.mixbukkit.utils.ASMUtils;
 import javassist.bytecode.Descriptor;
 import javassist.bytecode.Opcode;

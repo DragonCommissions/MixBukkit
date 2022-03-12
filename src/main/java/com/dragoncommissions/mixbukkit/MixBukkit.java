@@ -4,37 +4,34 @@ import com.dragoncommissions.mixbukkit.agent.ClassesManager;
 import com.dragoncommissions.mixbukkit.agent.JVMAttacher;
 import com.dragoncommissions.mixbukkit.api.ObfMap;
 import com.dragoncommissions.mixbukkit.api.MixinPlugin;
-import com.dragoncommissions.mixbukkit.utils.ASMUtils;
+import com.dragoncommissions.mixbukkit.utils.io.BukkitErrorOutputStream;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.SneakyThrows;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.Plugin;
-import org.bukkit.plugin.PluginLoader;
-import org.bukkit.plugin.SimplePluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.bukkit.plugin.java.JavaPluginLoader;
 
 import java.io.File;
 import java.io.InputStream;
 import java.lang.instrument.Instrumentation;
 import java.lang.reflect.Method;
-import java.net.URL;
 import java.net.URLClassLoader;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.jar.JarFile;
 
 public class MixBukkit extends JavaPlugin {
 
-    public final static String VERSION               = "0.1";
-    public final static BuildType BUILD_TYPE         = BuildType.SNAPSHOT;
-    public static boolean DEBUG                      = BUILD_TYPE.isDevBuild();
-    public static Instrumentation INSTRUMENTATION    = null;
-    public static boolean PREPARED                   = false;
+    public final static String VERSION                            = "0.1";
+    public final static BuildType BUILD_TYPE                      = BuildType.SNAPSHOT;
+    public static boolean DEBUG                                   = BUILD_TYPE.isDevBuild();
+    public static boolean SAFE_MODE = !DEBUG;
+    public static Instrumentation INSTRUMENTATION                 = null;
+    public static boolean PREPARED                                = false;
+    public static BukkitErrorOutputStream ERROR_OUTPUT_STREAM     = new BukkitErrorOutputStream();
 
     @Getter
     private File pluginFile;
@@ -59,13 +56,19 @@ public class MixBukkit extends JavaPlugin {
         URLClassLoader parent = ((URLClassLoader) getClassLoader().getParent());
         pluginFile = getFile();
 
+        loadConfig();
+
         getServer().getConsoleSender().sendMessage(ChatColor.GREEN   + "=-=-=-=-= MixBukkit Loader =-=-=-=-=");
-        getServer().getConsoleSender().sendMessage(ChatColor.RED     + "!! WARNING !!");
-        getServer().getConsoleSender().sendMessage(ChatColor.RED     + "/reload is not supported yet! Don't use /reload");
         getServer().getConsoleSender().sendMessage(ChatColor.YELLOW  + "Version: " + VERSION);
-        getServer().getConsoleSender().sendMessage(ChatColor.YELLOW  + "Build Type: " + BUILD_TYPE + (BUILD_TYPE.isDevBuild()?(ChatColor.RED + "  DON'T USE IT IN PRODUCTION SERVER"):""));
+        getServer().getConsoleSender().sendMessage(ChatColor.YELLOW  + "Build Type: " + BUILD_TYPE);
         getServer().getConsoleSender().sendMessage(ChatColor.YELLOW  + "Agent: " + pluginFile);
         getServer().getConsoleSender().sendMessage(ChatColor.YELLOW  + "");
+        if (!SAFE_MODE) {
+            getServer().getConsoleSender().sendMessage(ChatColor.DARK_GRAY + "// Warning: Safe mode is disabled! It might load invalid class and crash the Server/JVM");
+        }
+        if (!DEBUG) {
+            getServer().getConsoleSender().sendMessage(ChatColor.DARK_GRAY + "// If you wish to see debug messages, please enable \"debug-mode\" in your config file");
+        }
         getServer().getConsoleSender().sendMessage(ChatColor.YELLOW  + "");
         getServer().getConsoleSender().sendMessage(ChatColor.YELLOW  + "~~ Started loading ~~");
         getServer().getConsoleSender().sendMessage(ChatColor.YELLOW  + " - Attaching to JVM...");
@@ -83,14 +86,33 @@ public class MixBukkit extends JavaPlugin {
             throw new NullPointerException("Instrumentation is null");
         }
         getServer().getConsoleSender().sendMessage(ChatColor.GREEN   + "- Finished Attaching!");
-        getServer().getConsoleSender().sendMessage(ChatColor.YELLOW  + "- Preparing class pool...");
+        getServer().getConsoleSender().sendMessage(ChatColor.YELLOW  + "- Preparing class transformers...");
         ClassesManager.init();
-        getServer().getConsoleSender().sendMessage(ChatColor.GREEN   + "- Finished preparing class pool!");
+        getServer().getConsoleSender().sendMessage(ChatColor.GREEN   + "- Finished preparing class transformers!");
         getServer().getConsoleSender().sendMessage(ChatColor.GREEN   + "");
         getServer().getConsoleSender().sendMessage(ChatColor.GREEN   + "");
         getServer().getConsoleSender().sendMessage(ChatColor.GREEN   + "[!] Finished loading MixBukkit!");
         getServer().getConsoleSender().sendMessage(ChatColor.GREEN   + "=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-");
         PREPARED = true;
+    }
+
+    private void loadConfig() {
+        try {
+
+            YamlConfiguration config = new YamlConfiguration();
+            File configFile = new File(getDataFolder(), "config.yml");
+            if (!getDataFolder().exists()) getDataFolder().mkdirs();
+            if (!configFile.exists()) configFile.createNewFile();
+
+            config.load(configFile);
+            if (!config.contains("safe-mode")) config.set("safe-mode", SAFE_MODE);
+            if (!config.contains("debug-mode")) config.set("debug-mode", DEBUG);
+            SAFE_MODE = config.getBoolean("safe-mode");
+            DEBUG = config.getBoolean("debug-mode");
+            config.save(configFile);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     public static MixinPlugin registerMixinPlugin(Plugin plugin, InputStream membersMapStream) {

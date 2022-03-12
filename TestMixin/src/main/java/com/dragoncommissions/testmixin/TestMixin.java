@@ -2,11 +2,13 @@ package com.dragoncommissions.testmixin;
 
 import com.dragoncommissions.mixbukkit.MixBukkit;
 import com.dragoncommissions.mixbukkit.api.MixinPlugin;
-import com.dragoncommissions.mixbukkit.api.action.MActionCallSuper;
-import com.dragoncommissions.mixbukkit.api.action.MActionMethodCallReplacer;
+import com.dragoncommissions.mixbukkit.api.action.impl.MActionInsertShellCode;
+import com.dragoncommissions.mixbukkit.api.locator.impl.HLocatorTop;
+import com.dragoncommissions.mixbukkit.api.shellcode.impl.api.ShellCodeReflectionPluginMethodCall;
 import net.minecraft.world.damagesource.DamageSource;
-import net.minecraft.world.entity.monster.Creeper;
+import net.minecraft.world.entity.boss.EnderDragonPart;
 import net.minecraft.world.entity.monster.EnderMan;
+import net.minecraft.world.level.Level;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -21,29 +23,26 @@ public class TestMixin extends JavaPlugin {
     public void onEnable() {
         MixinPlugin plugin = MixBukkit.registerMixinPlugin(this, TestMixin.class.getClassLoader().getResourceAsStream("mapping.csrg"));
         try {
-//            plugin.registerMixin(
-//                    "Cursed Enderman Moment",
-//                    new MActionCallSuper(plugin),
-//                    EnderMan.class, // Target class
-//                    "hurt",  // Deobfuscated Method Name
-//                    boolean.class,  // Return Type
-//                    DamageSource.class, float.class // Parameter Types
-//            );
             plugin.registerMixin(
-                    "Instakill Enderman",
-                    new MActionMethodCallReplacer(TestMixin.class.getDeclaredMethod("hurt", EnderMan.class, DamageSource.class, float.class), false),
+                    "Hurt Test",
+                    new MActionInsertShellCode(
+                            new ShellCodeReflectionPluginMethodCall(TestMixin.class.getDeclaredMethod("hurt", EnderMan.class, DamageSource.class, float.class), false),
+                            new HLocatorTop()
+                    ),
                     EnderMan.class, // Target class
                     "hurt",  // Deobfuscated Method Name
                     boolean.class,  // Return Type
                     DamageSource.class, float.class // Parameter Types
             );
-        } catch (Exception ignored) {}
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
-    public static boolean hurt(EnderMan enderMan, DamageSource damageSource, float damage) {
-        enderMan.kill();
-        Bukkit.broadcastMessage("Killed!");
-        return false;
+
+    public static void hurt(EnderMan test, DamageSource damageSource, float damage) {
+        Bukkit.broadcastMessage(test.getDisplayName().getString() + " gets hurt from " + damageSource.getMsgId() + "  (Damage amount: " + damage + ")");
     }
+
 
 }

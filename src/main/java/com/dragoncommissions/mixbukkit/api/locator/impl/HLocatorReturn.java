@@ -1,5 +1,6 @@
-package com.dragoncommissions.mixbukkit.api.locator;
+package com.dragoncommissions.mixbukkit.api.locator.impl;
 
+import com.dragoncommissions.mixbukkit.api.locator.HookLocator;
 import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.InsnList;
 

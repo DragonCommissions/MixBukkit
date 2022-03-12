@@ -43,10 +43,14 @@ public class ASMUtils {
             default:
                 if ( type.endsWith( "[]" ) )
                 {
-                    return "[" + toDescriptorTypeName( type.substring( 0, type.length() - 2 ) );
+                    String s = toDescriptorTypeName(type.substring(0, type.length() - 2));
+                    return "[" + s.substring(0, s.length());
                 }
                 String clazzType = type.replace( '.', '/' );
-
+                if ( type.startsWith("[") && type.endsWith(";") )
+                {
+                    return clazzType;
+                }
                 return "L" + clazzType + ";";
         }
     }
@@ -194,22 +198,22 @@ public class ASMUtils {
     }
 
 
-    public static int test(int a, float b, double c, char d, boolean e, byte f, short g, String h, String[] i, int[] j) {
-        try {
-            for (Plugin plugin : Bukkit.getPluginManager().getPlugins()) {
-                ClassLoader classLoader = plugin.getClass().getClassLoader();
-                Class<?> loadedClass = Class.forName("CLASS_NAME_HERE", true, classLoader);
-                Method methodNameHere = loadedClass.getDeclaredMethod("methodNameHere", int.class, float.class, double.class, char.class, boolean.class, byte.class, short.class, String.class, String[].class, int[].class);
-                return (int) methodNameHere.invoke(null, a, b, c, d, e, f, g, h, i, j);
+    public static int getLatestVarNumber(InsnList list) {
+        int out = 5;
+        for (AbstractInsnNode insnNode : list) {
+            if (insnNode instanceof VarInsnNode) {
+                int var = ((VarInsnNode) insnNode).var;
+                out = Math.max(var, out);
             }
-        } catch (Exception ignored) {}
-        return 0;
+        }
+        return out;
     }
+
 
     public static InsnList generateMethodCall(MethodNode method, int latestVarCount, Method handler, boolean isTargetStatic) {
         InsnList out = new InsnList();
         latestVarCount++;
-        int varNumOf11 = latestVarCount++;
+        int plugins = latestVarCount++;
         int varNumOf12 = latestVarCount++;
         int varNumOf13 = latestVarCount++;
         int varNumOf14 = latestVarCount++;
@@ -231,8 +235,8 @@ public class ASMUtils {
         out.add(label0);
         out.add(new MethodInsnNode(184, "org/bukkit/Bukkit", "getPluginManager", "()Lorg/bukkit/plugin/PluginManager;", false));
         out.add(new MethodInsnNode(185, "org/bukkit/plugin/PluginManager", "getPlugins", "()[Lorg/bukkit/plugin/Plugin;", true));
-        out.add(new VarInsnNode(58, varNumOf11));
-        out.add(new VarInsnNode(25, varNumOf11));
+        out.add(new VarInsnNode(58, plugins));
+        out.add(new VarInsnNode(25, plugins));
         out.add(new InsnNode(190));
         out.add(new VarInsnNode(54, varNumOf12));
         out.add(new InsnNode(3));
@@ -241,7 +245,7 @@ public class ASMUtils {
         out.add(new VarInsnNode(21, varNumOf13));
         out.add(new VarInsnNode(21, varNumOf12));
         out.add(new JumpInsnNode(162, label7));
-        out.add(new VarInsnNode(25, varNumOf11));
+        out.add(new VarInsnNode(25, plugins));
         out.add(new VarInsnNode(21, varNumOf13));
         out.add(new InsnNode(50));
         out.add(new VarInsnNode(58, varNumOf14));
@@ -260,7 +264,7 @@ public class ASMUtils {
         out.add(new VarInsnNode(25, varNumOf16));
         out.add(new LdcInsnNode(handler.getName()));
         out.add(ASMUtils.pushInt(handler.getParameterTypes().length));
-        out.add(new TypeInsnNode(189, "java/lang/Class"));
+        out.add(new TypeInsnNode(Opcode.ANEWARRAY, "java/lang/Class"));
         for (int i = 0; i < handler.getParameterTypes().length; i++) {
             out.add(new InsnNode(Opcode.DUP));
             out.add(ASMUtils.pushInt(i));
@@ -291,7 +295,7 @@ public class ASMUtils {
         out.add(label7);
         out.add(new JumpInsnNode(167, label9));
         out.add(label8);
-        out.add(new VarInsnNode(58, varNumOf11));
+        out.add(new VarInsnNode(58, plugins));
         out.add(label9);
         method.tryCatchBlocks.add(new TryCatchBlockNode(label0, label7, label8, "java/lang/Exception"));
         method.localVariables.add(new LocalVariableNode("classLoader", "Ljava/lang/ClassLoader;", null, label1, label2, varNumOf15));

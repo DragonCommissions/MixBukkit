@@ -4,16 +4,27 @@ import com.dragoncommissions.mixbukkit.MixBukkit;
 import com.dragoncommissions.mixbukkit.agent.ClassesManager;
 import com.dragoncommissions.mixbukkit.api.action.MixinAction;
 import com.dragoncommissions.mixbukkit.utils.ASMUtils;
+import com.dragoncommissions.mixbukkit.utils.CustomTextifier;
 import lombok.Getter;
 import lombok.SneakyThrows;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.plugin.Plugin;
+import org.objectweb.asm.*;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.MethodNode;
+import org.objectweb.asm.tree.analysis.Analyzer;
+import org.objectweb.asm.tree.analysis.AnalyzerException;
+import org.objectweb.asm.tree.analysis.BasicValue;
+import org.objectweb.asm.tree.analysis.SimpleVerifier;
+import org.objectweb.asm.util.CheckClassAdapter;
 
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.PrintWriter;
 import java.lang.instrument.ClassDefinition;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 public class MixinPlugin {
@@ -44,7 +55,7 @@ public class MixinPlugin {
         String descriptor = ASMUtils.getDescriptor(returnType, arguments);
         String obfMethodName = obfMap.resolveMapping(new ObfMap.MethodMapping(owner.getName().replace(".", "/"), descriptor, deObfMethodName));
         if (MixBukkit.DEBUG) {
-            Bukkit.getConsoleSender().sendMessage(ChatColor.DARK_GRAY + "// Obfuscated method name: " + obfMethodName);
+            Bukkit.getConsoleSender().sendMessage(ChatColor.DARK_GRAY + "// Obfuscated method name: " + owner.getName().replace(".", "/") + "." + obfMethodName + descriptor);
         }
 
         ClassNode classNode = ClassesManager.getClassNode(owner.getName());
@@ -52,6 +63,7 @@ public class MixinPlugin {
             Bukkit.getConsoleSender().sendMessage(ChatColor.RED + "[!] Failed to load mixin: " + plugin.getName() + ":" + namespace + ", Reason: Could not find target class: " + owner.getName());
             return false;
         }
+        PrintWriter printWriter = new PrintWriter(MixBukkit.ERROR_OUTPUT_STREAM, true);
         for (MethodNode method : classNode.methods) {
             if (method.name.equals(obfMethodName) && method.desc.equals(descriptor)) {
                 if (MixBukkit.DEBUG) {
@@ -63,10 +75,43 @@ public class MixinPlugin {
                 }
                 mixinAction.action(owner, method);
 
+
+
                 if (MixBukkit.DEBUG) {
                     Bukkit.getConsoleSender().sendMessage(ChatColor.DARK_GRAY + "// Assembling...");
                 }
                 byte[] data = ASMUtils.fromClassNode(classNode);
+
+                Bukkit.getConsoleSender().sendMessage(ChatColor.DARK_GRAY + "// Verifying...");
+                ClassReader classReader = new ClassReader(data);
+                boolean[] illegal = new boolean[] {false};
+                CheckClassAdapter.verify(classReader, getClass().getClassLoader().getParent(), false, new PrintWriter(new OutputStream() {
+                    @Override
+                    public void write(int b) throws IOException {
+                        illegal[0] = true;
+                    }
+                }));
+
+                if (illegal[0]) {
+                    if (MixBukkit.DEBUG) {
+                        printWriter.println("Mixin Method:");
+                        CustomTextifier methodVisitor = new CustomTextifier();
+                        method.accept(methodVisitor);
+                        for (Object o : methodVisitor.text) {
+                            printWriter.println(o);
+                        }
+                        printWriter.println("");
+                        printWriter.println("");
+                        CheckClassAdapter.verify(classReader, getClass().getClassLoader().getParent(), false, printWriter);
+                    }
+                    if (MixBukkit.SAFE_MODE) {
+                        Bukkit.getConsoleSender().sendMessage(ChatColor.RED + "[!] Failed to load mixin: " + plugin.getName() + ":" + namespace + ", Reason: Invalid Bytecode, and safe-mode is on");
+                        return false;
+                    } else {
+                        Bukkit.getConsoleSender().sendMessage(ChatColor.YELLOW + "[?] Mixin: " + plugin.getName() + ":" + namespace + " has failed the verification, and it might crash your server! Be careful.");
+                    }
+                }
+
                 try {
                     if (MixBukkit.DEBUG) {
                         Bukkit.getConsoleSender().sendMessage(ChatColor.DARK_GRAY + "// Redefining class...");
@@ -74,6 +119,7 @@ public class MixinPlugin {
 
                     MixBukkit.INSTRUMENTATION.redefineClasses(new ClassDefinition(owner, data));
                     ClassesManager.classNodes.put(owner.getName(), classNode);
+                    ClassesManager.classes.put(owner.getName(), data);
                 } catch (Exception e) {
                     e.printStackTrace();
                     Bukkit.getConsoleSender().sendMessage(ChatColor.RED + "[!] Failed to load mixin: " + plugin.getName() + ":" + namespace + ", Reason: Could not redefine class: " + owner.getSimpleName());
@@ -87,6 +133,41 @@ public class MixinPlugin {
         }
         Bukkit.getConsoleSender().sendMessage(ChatColor.RED + "[!] Failed to load mixin: " + plugin.getName() + ":" + namespace + ", Reason: Could not find target method");
         return false;
+    }
+
+    public static void verify(ClassReader classReader, ClassLoader loader, PrintWriter printWriter) {
+        ClassNode classNode = new ClassNode();
+        classReader.accept(new CheckClassAdapter(Opcodes.ASM9, classNode, true) {
+        }, 2);
+        Type syperType = classNode.superName == null ? null : Type.getObjectType(classNode.superName);
+        List<MethodNode> methods = classNode.methods;
+        List<Type> interfaces = new ArrayList();
+        Iterator var8 = classNode.interfaces.iterator();
+
+        while(var8.hasNext()) {
+            String interfaceName = (String)var8.next();
+            interfaces.add(Type.getObjectType(interfaceName));
+        }
+
+        var8 = methods.iterator();
+
+        while(var8.hasNext()) {
+            MethodNode method = (MethodNode)var8.next();
+            SimpleVerifier verifier = new SimpleVerifier(Type.getObjectType(classNode.name), syperType, interfaces, (classNode.access & 512) != 0);
+            Analyzer<BasicValue> analyzer = new Analyzer(verifier);
+            if (loader != null) {
+                verifier.setClassLoader(loader);
+            }
+
+            try {
+                analyzer.analyze(classNode.name, method);
+            } catch (AnalyzerException var13) {
+                var13.printStackTrace(printWriter);
+            }
+
+        }
+
+        printWriter.flush();
     }
 
 }
