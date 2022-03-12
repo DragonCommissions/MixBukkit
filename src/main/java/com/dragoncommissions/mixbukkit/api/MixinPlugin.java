@@ -102,7 +102,7 @@ public class MixinPlugin {
                         }
                         printWriter.println("");
                         printWriter.println("");
-                        CheckClassAdapter.verify(classReader, getClass().getClassLoader().getParent(), false, printWriter);
+                        CheckClassAdapter.verify(classReader, getClass().getClassLoader().getParent(), true, printWriter);
                     }
                     if (MixBukkit.SAFE_MODE) {
                         Bukkit.getConsoleSender().sendMessage(ChatColor.RED + "[!] Failed to load mixin: " + plugin.getName() + ":" + namespace + ", Reason: Invalid Bytecode, and safe-mode is on");

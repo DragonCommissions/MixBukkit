@@ -9,35 +9,57 @@ In theory, it should work from Java 8 ~ Java latest, Linux & Windows & MacOS, bu
 Minecraft version is not limited, but it will result in mapping different
 
 ## Basic Usage
-### Prepare a working mapping (Optional)
+### Mapping
+#### Method 1. Use Spigot's Members Mapping
+If you want to make things easy/fast/good/great/simple/easy, you can use this method.
+Simply skip to next step, you don't need to worry about mapping
+#### Method 2. Use custom mapping
+Since we get an AutoMapper, you can use it instead, but you can also do this if
+you have a custom mapping to load. Doing the following thing will get you a
+working vanilla mapping. You can also grab it from `%server_root%/mappings.csrg`.
 1. Run buildtool with this following command: `java -jar BuildTool.jar --rev <version that supports remapping> --remapped`
 2. After that, go to your local maven repository (usually `{user.home}/.m2/repository`), and copy `minecraft-server-<version>-maps-spigot-members.csrg`. For example, it's in `/home/fan87/.m2/repository/org/spigotmc/minecraft-server/1.18.1-R0.1-SNAPSHOT/` on my computer
 3. Paste that file into the same directory as `plugin.yml`, and name it to anything you want. For example: `mapping.csrg`
-
-If you don't do this step, it's fine, but you'll have to use Bukkit's mapping instead of remapped name.
+#### Bad way of loading a custom members mapping
+Do not replace `%server_root%/mappings.csrg` to load a custom mapping. It
+will probably kill all plugins that is using Mixin.<br>
+Unless you want to make the mapping globally (let's say you are the user, you can do this).
 
 ### Register `MixinPlugin`
+If you wish to use Spigot's members mapping:
+```java
+// onEnable()
+MixinPlugin mixinPlugin = MixBukkit.registerMixinPlugin(this, AutoMapper.getMappingAsStream());
+```
+If you wish to use a custom members mapping:
 ```java
 // onEnable()
 MixinPlugin mixinPlugin = MixBukkit.registerMixinPlugin(this, TestMixin.class.getClassLoader().getResourceAsStream("mapping.csrg" /* Type the mapping location here */));
 ```
 After registering MixinPlugin, you can start registering mixins.
+Please check `TestMixin/` module for examples!
 
+### Project Keywords/Tips and tricks
+#### ShellCode
+Also be known as Bytecode Generator. For example: `ShellCodeReflectionPluginMethodCall` uses reflection to call plugin methods. Every shellcode should get an annotation: `ShellCodeInfo`, which contains information about the shellcode. While implementing your own the shellcode, you should always annotate it with @ShellCodeInfo with required information.
+To get a list of ShellCodes, simply type `ShellCode` in your IDE and let it auto completes:
+![](https://storage.gato.host/61068f9c11c02e002297ebf2/iwGtPu8wD.png)
 
-Here's an example:
-```java
-mixinPlugin.registerMixin("Hook Tick", // Any name you want, use to identify, so reloading plugin won't kill it
-                    new MActionInsertHandler( // MAction is shorten name of MaxinAction, basically decides what to do with detected method.
-                    // In this case, InsertHandler will insert instructions given by `MixinHandler` into location given by the `HookLocator`
-                            new MHandlerMethod(TestMixin.class.getDeclaredMethod("tick"), false),  // MixinHandler, decides what to add. In thise case, it will add a method call (TestMixin.tick())
-                            new HLocatorTop() // HookLocator, HLocatorTop will return the first line of code (which is 0), so when method is executed by Minecraft, it will also be executed
-                    ),
-                    Level.class, // The class you want to hook. `Level.class` is a class in NMS
-                    "tickBlockEntities", // The method you want to hook. The name of it depends on your mapping. In this case, `tickBlockEntities()`(remapped.jar) is `R()`(server.jar), but you can pass `tickBlockEntities` instead of unreadable name
-                    void.class,  // The return type. This method returns nothing, so `void`
-                    new Class[] {} // Arguments. This method has no argument, so leave it empty.
-        );
-```
+#### MixinAction (MAction)
+MixinAction has ability to modify entire method,
+which is the lowest level of mixin. If you want to do something special
+other than inserting shellcode (for example: replace it with a super call, trash the method),
+you can use this. Same as shellcode, you can do get a list of MixinAction with `MAction` and let the IDE list them for you.
+Here's an example MixinAction (MActionMethodTrasher), which trashes entire method and replace them with nothing. Note that it doesn't work with variables requires a return value:
+![](https://storage.gato.host/61068f9c11c02e002297ebf2/ov_KRsORz.png)
+
+#### HookLocator (HLocator)
+HookLocator will return a list of instruction index.
+Let's say you want to inject a shellcode into the top of the method,
+you would want to use `new MActionInsertShellCode(shellCode, new HLocatorTop())`
+
+## Advanced Usage
+Coming Soon! (JavaDoc also coming soon : D )
 
 ## Gallery
 ![](https://storage.gato.host/61068f9c11c02e002297ebf2/ZPMCC0j-t.png)
