@@ -2,7 +2,7 @@
 MixBukkit is a mixin framework inspired by SpongePowered's Mixin framework using ASM.
 
 ## When will you need it
-Let's say you want to hook something in `Skeleton.class`, but obviously you can't just edit spigot source code. Having a custom bulid just for a plugin is ridiculous. MixBukkit provides an easy to use API that allows you to hook anything in NMS/CraftBukkit/Spigot API/Plugins and even libraries.
+Let's say you want to hook something in `Skeleton.class`, but obviously you can't just edit spigot source code. Having a custom build just for a plugin is ridiculous. MixBukkit provides an easy to use API that allows you to hook anything in NMS/CraftBukkit/Spigot API/Plugins and even libraries.
 
 ## Environment
 In theory, it should work from Java 8 ~ Java latest, Linux & Windows & MacOS, but I only tested it on Linux with Java 17.<br>
