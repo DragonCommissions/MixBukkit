@@ -11,7 +11,7 @@ Minecraft version is not limited, but it will result in mapping different
 ## Basic Usage
 ### Mapping
 #### Method 1. Use Spigot's Members Mapping
-If you want to make things easy/fast/good/great/simple/easy, you can use this method.
+If you want to make things easy/fast/good/great/simple, you can use this method.
 Simply skip to next step, you don't need to worry about mapping
 #### Method 2. Use custom mapping
 Since we get an AutoMapper, you can use it instead, but you can also do this if
