@@ -45,6 +45,8 @@ public class ShellCodeReflectionMixinPluginMethodCall extends ShellCode {
     @SneakyThrows
     public InsnList generate(MethodNode methodNode, LocalVarManager varManager) {
         InsnList out = new InsnList();
+//        methodNode.maxStack = 200;
+//        methodNode.maxLocals = 200;
         Class<?>[] parameterTypes = handler.getParameterTypes();
         boolean hasCallBackInfo = false;
         for (int i = 0; i < parameterTypes.length; i++) {

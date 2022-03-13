@@ -114,8 +114,7 @@ public class ASMUtils {
 
     @SneakyThrows
     public static byte[] fromClassNode(ClassNode node) {
-
-        ClassWriter writer = new ClassWriter(ClassWriter.COMPUTE_MAXS);
+        ClassWriter writer = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
         try {
             node.accept(writer);
         } catch (Exception e) {
