@@ -17,7 +17,7 @@ public class EDragonArrowShieldRemover {
     public static void register(MixinPlugin plugin) {
         plugin.registerMixin("dragon_arrow_blocker_remove",
                     new MActionInsertShellCode(
-                            new ShellCodeReflectionMixinPluginMethodCall(EDragonArrowShieldRemover.class.getDeclaredMethod("onHurt", AbstractDragonSittingPhase.class, DamageSource.class, float.class, CallbackInfo.class), false),
+                            new ShellCodeReflectionMixinPluginMethodCall(EDragonArrowShieldRemover.class.getDeclaredMethod("onHurt", AbstractDragonSittingPhase.class, DamageSource.class, float.class, CallbackInfo.class)),
                             new HLocatorHead()
                     ), AbstractDragonSittingPhase.class, "onHurt", float.class, DamageSource.class, float.class);
     }

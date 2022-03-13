@@ -3,13 +3,10 @@ package com.dragoncommissions.mixbukkit.api.shellcode.impl.api;
 import com.dragoncommissions.mixbukkit.api.shellcode.LocalVarManager;
 import com.dragoncommissions.mixbukkit.api.shellcode.ShellCode;
 import com.dragoncommissions.mixbukkit.api.shellcode.ShellCodeInfo;
-import com.dragoncommissions.mixbukkit.api.shellcode.impl.inner.IShellCodeMethodInvoke;
 import com.dragoncommissions.mixbukkit.api.shellcode.impl.inner.IShellCodeReflectionMethodInvoke;
 import com.dragoncommissions.mixbukkit.utils.ASMUtils;
 import lombok.AllArgsConstructor;
 import lombok.SneakyThrows;
-import org.bukkit.Bukkit;
-import org.bukkit.plugin.PluginManager;
 import org.objectweb.asm.tree.InsnList;
 import org.objectweb.asm.tree.MethodNode;
 
@@ -29,12 +26,6 @@ import java.lang.reflect.Method;
 public class ShellCodeReflectionMixinPluginMethodCall extends ShellCode {
 
     private Method handler;
-    private boolean staticTarget;
-
-    @SneakyThrows
-    private static void action() {
-        Class.forName("CLASS_NAME_HERE", true, Bukkit.getPluginManager().getPlugins()[0].getClass().getClassLoader()).getDeclaredMethod("methodNameHere", int.class, float.class, double.class, char.class, boolean.class, byte.class, short.class, String.class, String[].class, int[].class).invoke(null);
-    }
 
     @Override
     @SneakyThrows
@@ -60,13 +51,6 @@ public class ShellCodeReflectionMixinPluginMethodCall extends ShellCode {
         return out;
     }
 
-    @SneakyThrows
-    private static InsnList getPlugins() {
-        InsnList out = new InsnList();
-        out.add(new IShellCodeMethodInvoke(Bukkit.class.getDeclaredMethod("getPluginManager")).generate());
-        out.add(new IShellCodeMethodInvoke(PluginManager.class.getDeclaredMethod("getPlugins")).generate());
-        return out;
-    }
 
 
 
