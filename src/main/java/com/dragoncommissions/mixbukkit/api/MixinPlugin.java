@@ -60,11 +60,12 @@ public class MixinPlugin {
 
         ClassNode classNode = ClassesManager.getClassNode(owner.getName());
         if (classNode == null) {
-            Bukkit.getConsoleSender().sendMessage(ChatColor.RED + "[!] Failed to load mixin: " + plugin.getName() + ":" + namespace + ", Reason: Could not find target class: " + owner.getName());
+            Bukkit.getConsoleSender().sendMessage(ChatColor.RED + "[!] Failed to load mixin: " + plugin.getName() + ":" + namespace + ", Reason: Could not find the target class: " + owner.getName());
             return false;
         }
         PrintWriter printWriter = new PrintWriter(MixBukkit.ERROR_OUTPUT_STREAM, true);
         for (MethodNode method : classNode.methods) {
+//            System.out.println(method.name + method.desc + "  /   " + obfMethodName + descriptor);
             if (method.name.equals(obfMethodName) && method.desc.equals(descriptor)) {
                 if (MixBukkit.DEBUG) {
                     Bukkit.getConsoleSender().sendMessage(ChatColor.DARK_GRAY + "// Found Method to hook!");
@@ -131,7 +132,7 @@ public class MixinPlugin {
                 return true;
             }
         }
-        Bukkit.getConsoleSender().sendMessage(ChatColor.RED + "[!] Failed to load mixin: " + plugin.getName() + ":" + namespace + ", Reason: Could not find target method");
+        Bukkit.getConsoleSender().sendMessage(ChatColor.RED + "[!] Failed to load mixin: " + plugin.getName() + ":" + namespace + ", Reason: Could not find the target method");
         return false;
     }
 
