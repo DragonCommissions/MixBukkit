@@ -12,6 +12,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
+@SuppressWarnings("Untested")
 public class MActionMethodCallSpoofer implements MixinAction {
 
     private Method method;
