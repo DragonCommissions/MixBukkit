@@ -11,10 +11,7 @@ import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.monster.Slime;
 import org.bukkit.Bukkit;
-import org.bukkit.entity.Arrow;
-import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public class TestMixin extends JavaPlugin implements Listener {
@@ -51,13 +48,6 @@ public class TestMixin extends JavaPlugin implements Listener {
             Bukkit.broadcastMessage(entity.getDisplayName().getString() + " gets hurt from " + damageSource.getMsgId() + "  (Damage amount: " + damage + ")");
             callBackInfo.setReturned(true);
             callBackInfo.setReturnValue(false);
-        }
-    }
-
-    @EventHandler
-    public void onHurt(EntityDamageByEntityEvent event) {
-        if (event.getDamager() instanceof Arrow) {
-            event.setCancelled(true);
         }
     }
 
