@@ -177,3 +177,11 @@ This is a pretty bad thing, but if we think outside the box:
 ```
 Yes, you can just check the class and see if it's an instance of Skeleton.
 It's same as hooking into `Skeleton.hurt()`
+
+## Mapping API
+While using `HLocatorMethodInvoke`, it requires a java reflection api `Method` object,
+which can be obtained with `getDeclaredMethod`, but obviously it won't work
+since the method name on the server is obfuscated. We provided an API for this,
+you can simply call `plugin.getMethod()` to solve this problem, it takes
+basically same parameter as getDeclaredMethod, but it will find the obfuscated version
+according to the members map loaded.<br>

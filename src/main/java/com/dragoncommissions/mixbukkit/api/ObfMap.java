@@ -1,7 +1,6 @@
 package com.dragoncommissions.mixbukkit.api;
 
 import com.dragoncommissions.mixbukkit.MixBukkit;
-import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
@@ -55,21 +54,30 @@ public class ObfMap {
 
     @Getter
     @EqualsAndHashCode
-    @AllArgsConstructor
     @ToString
     public static class FieldMapping {
-        private String ownerName; // Replaced / with .
-        private String fieldName;
+        private final String ownerName; // Replaced / with .
+        private final String fieldName;
+
+        public FieldMapping(String ownerName, String fieldName) {
+            this.ownerName = ownerName.replace(".", "/");
+            this.fieldName = fieldName;
+        }
     }
 
     @Getter
     @EqualsAndHashCode
-    @AllArgsConstructor
     @ToString
     public static class MethodMapping {
-        private String ownerName; // Replaced / with .
-        private String descriptor;
-        private String methodName;
+        private final String ownerName; // Replaced / with .
+        private final String descriptor;
+        private final String methodName;
+
+        public MethodMapping(String ownerName, String descriptor, String methodName) {
+            this.ownerName = ownerName.replace(".", "/");
+            this.descriptor = descriptor;
+            this.methodName = methodName;
+        }
     }
 
 }
