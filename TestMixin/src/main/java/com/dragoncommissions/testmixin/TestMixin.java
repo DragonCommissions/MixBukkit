@@ -4,12 +4,14 @@ import com.dragoncommissions.mixbukkit.MixBukkit;
 import com.dragoncommissions.mixbukkit.addons.AutoMapper;
 import com.dragoncommissions.mixbukkit.api.MixinPlugin;
 import com.dragoncommissions.mixbukkit.api.action.impl.MActionInsertShellCode;
-import com.dragoncommissions.mixbukkit.api.locator.impl.HLocatorPostMethodCall;
-import com.dragoncommissions.mixbukkit.api.locator.impl.HLocatorPreMethodCall;
-import com.dragoncommissions.mixbukkit.api.locator.impl.HLocatorTop;
+import com.dragoncommissions.mixbukkit.api.locator.impl.HLocatorFieldAccess;
+import com.dragoncommissions.mixbukkit.api.locator.impl.HLocatorFieldRead;
+import com.dragoncommissions.mixbukkit.api.locator.impl.HLocatorFieldWrite;
+import com.dragoncommissions.mixbukkit.api.locator.impl.HLocatorHead;
 import com.dragoncommissions.mixbukkit.api.shellcode.impl.api.CallbackInfo;
 import com.dragoncommissions.mixbukkit.api.shellcode.impl.api.ShellCodeComment;
 import com.dragoncommissions.mixbukkit.api.shellcode.impl.api.ShellCodeReflectionMixinPluginMethodCall;
+import com.dragoncommissions.mixbukkit.utils.PostPreState;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.monster.Slime;
@@ -33,20 +35,30 @@ public class TestMixin extends JavaPlugin implements Listener {
         MixinPlugin plugin = MixBukkit.registerMixinPlugin(this, AutoMapper.getMappingAsStream());
         try {
             plugin.registerMixin(
-                    "Pre Method Call Test",
+                    "Field Read Test",
                     new MActionInsertShellCode(
-                            new ShellCodeComment("Pre Method Call"),
-                            new HLocatorPreMethodCall(Bukkit.class.getDeclaredMethod("broadcastMessage", String.class))
+                            new ShellCodeComment("Detected Field Read"),
+                            new HLocatorFieldRead(InjectionTest.class.getDeclaredField("testValue"), PostPreState.PRE)
                     ),
                     InjectionTest.class, // Target class
                     "injectionTest_methodCallLocator",  // Deobfuscated Method Name
                     void.class // Return Type
             );
             plugin.registerMixin(
-                    "Post Method Call Test",
+                    "Field Write Test",
                     new MActionInsertShellCode(
-                            new ShellCodeComment("Post Method Call"),
-                            new HLocatorPostMethodCall(Bukkit.class.getDeclaredMethod("broadcastMessage", String.class))
+                            new ShellCodeComment("Detected Field Write"),
+                            new HLocatorFieldWrite(InjectionTest.class.getDeclaredField("testValue"), PostPreState.PRE)
+                    ),
+                    InjectionTest.class, // Target class
+                    "injectionTest_methodCallLocator",  // Deobfuscated Method Name
+                    void.class // Return Type
+            );
+            plugin.registerMixin(
+                    "Field Access Test",
+                    new MActionInsertShellCode(
+                            new ShellCodeComment("Detected Field Access"),
+                            new HLocatorFieldAccess(InjectionTest.class.getDeclaredField("testValue"), PostPreState.PRE)
                     ),
                     InjectionTest.class, // Target class
                     "injectionTest_methodCallLocator",  // Deobfuscated Method Name
@@ -56,7 +68,7 @@ public class TestMixin extends JavaPlugin implements Listener {
                     "Hurt Test",
                     new MActionInsertShellCode(
                             new ShellCodeReflectionMixinPluginMethodCall(TestMixin.class.getDeclaredMethod("hurt", LivingEntity.class, DamageSource.class, float.class, CallbackInfo.class), false),
-                            new HLocatorTop()
+                            new HLocatorHead()
                     ),
                     LivingEntity.class, // Target class
                     "hurt",  // Deobfuscated Method Name

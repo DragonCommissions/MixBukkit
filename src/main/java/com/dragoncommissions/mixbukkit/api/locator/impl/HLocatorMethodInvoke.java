@@ -2,6 +2,7 @@ package com.dragoncommissions.mixbukkit.api.locator.impl;
 
 import com.dragoncommissions.mixbukkit.api.locator.HookLocator;
 import com.dragoncommissions.mixbukkit.utils.ASMUtils;
+import com.dragoncommissions.mixbukkit.utils.PostPreState;
 import lombok.AllArgsConstructor;
 import org.objectweb.asm.tree.InsnList;
 import org.objectweb.asm.tree.MethodInsnNode;
@@ -11,9 +12,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 @AllArgsConstructor
-public class HLocatorPostMethodCall implements HookLocator {
+public class HLocatorMethodInvoke implements HookLocator {
 
     private Method method;
+    private PostPreState state;
 
     @Override
     public List<Integer> getLineNumber(InsnList insnList) {
@@ -24,7 +26,7 @@ public class HLocatorPostMethodCall implements HookLocator {
             if (insnList.get(i) instanceof MethodInsnNode) {
                 MethodInsnNode insnNode = (MethodInsnNode) insnList.get(i);
                 if (insnNode.owner.equals(owner) && insnNode.name.equals(method.getName()) && insnNode.desc.equals(desc)) {
-                    out.add(i + 1);
+                    out.add(i + (state == PostPreState.POST?1:0));
                 }
             }
         }
