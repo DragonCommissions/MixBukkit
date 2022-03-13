@@ -12,6 +12,8 @@ import com.dragoncommissions.mixbukkit.api.shellcode.impl.api.CallbackInfo;
 import com.dragoncommissions.mixbukkit.api.shellcode.impl.api.ShellCodeComment;
 import com.dragoncommissions.mixbukkit.api.shellcode.impl.api.ShellCodeReflectionMixinPluginMethodCall;
 import com.dragoncommissions.mixbukkit.utils.PostPreState;
+import net.minecraft.network.Connection;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.monster.Slime;
@@ -75,12 +77,27 @@ public class TestMixin extends JavaPlugin implements Listener {
                     boolean.class,  // Return Type
                     DamageSource.class, float.class // Parameter Types
             );
+            plugin.registerMixin(
+                    "No Moar Disconnect",
+                    new MActionInsertShellCode(
+                            new ShellCodeReflectionMixinPluginMethodCall(TestMixin.class.getDeclaredMethod("noMoarDisconnect", CallbackInfo.class), false),
+                            new HLocatorHead()
+                    ),
+                    Connection.class, // Target class
+                    "disconnect",  // Deobfuscated Method Name
+                    void.class,  // Return Type
+                    Component.class // Parameter Types
+            );
             getServer().getPluginManager().registerEvents(this, this);
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
+    public static void noMoarDisconnect(CallbackInfo info) {
+        Bukkit.broadcastMessage("Attempted Disconnect!");
+//        info.setReturned(true);
+    }
 
     public static void hurt(LivingEntity entity, DamageSource damageSource, float damage, CallbackInfo callBackInfo) {
         if (entity instanceof Slime) {

@@ -42,9 +42,14 @@ public class CallbackInfo {
         out.add(returnBranch);
         out.add(new VarInsnNode(Opcode.ALOAD, varLocation));
         out.add(new IShellCodeReflectionMethodInvoke(CallbackInfo.class.getDeclaredMethod("getReturnValue")).generate(null, varManager));
-        Class<?> returnType = ASMUtils.getReturnType(hookedMethod.desc);
-        out.add(ASMUtils.cast(returnType));
-        out.add(ASMUtils.genReturnNode(returnType));
+        if (!hookedMethod.desc.endsWith("V")) {
+            Class<?> returnType = ASMUtils.getReturnType(hookedMethod.desc);
+            out.add(ASMUtils.cast(returnType));
+            out.add(ASMUtils.genReturnNode(returnType));
+        } else {
+            out.add(new InsnNode(Opcode.RETURN));
+        }
+
         out.add(defaultBranch);
         return out;
     }

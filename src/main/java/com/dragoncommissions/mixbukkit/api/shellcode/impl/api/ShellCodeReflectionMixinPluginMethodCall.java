@@ -6,19 +6,14 @@ import com.dragoncommissions.mixbukkit.api.shellcode.ShellCodeInfo;
 import com.dragoncommissions.mixbukkit.api.shellcode.impl.inner.IShellCodeMethodInvoke;
 import com.dragoncommissions.mixbukkit.api.shellcode.impl.inner.IShellCodeReflectionMethodInvoke;
 import com.dragoncommissions.mixbukkit.utils.ASMUtils;
-import javassist.bytecode.Opcode;
 import lombok.AllArgsConstructor;
 import lombok.SneakyThrows;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.PluginManager;
-import org.objectweb.asm.tree.FieldInsnNode;
 import org.objectweb.asm.tree.InsnList;
 import org.objectweb.asm.tree.MethodNode;
-import org.objectweb.asm.tree.VarInsnNode;
 
 import java.lang.reflect.Method;
-
-import static javassist.bytecode.Opcode.GETSTATIC;
 
 @ShellCodeInfo(
         name = "Reflection Mixin Plugin Method Call",
@@ -60,10 +55,6 @@ public class ShellCodeReflectionMixinPluginMethodCall extends ShellCode {
         out.add(shellCodeReflectionMethodInvoke.generate(methodNode, varManager));
         if (hasCallBackInfo) {
             Integer varLocation = shellCodeReflectionMethodInvoke.getArgumentVarIndex().get(parameterTypes.length - 1);
-            out.add(new FieldInsnNode(GETSTATIC, "java/lang/System", "out", "Ljava/io/PrintStream;"));
-            out.add(new VarInsnNode(Opcode.ALOAD, varLocation));
-            out.add(new IShellCodeMethodInvoke(Object.class.getDeclaredMethod("getClass")).generate());
-            out.add(new IShellCodeMethodInvoke(Class.class.getDeclaredMethod("getName")).generate());
             out.add(CallbackInfo.processCallBackInfo(methodNode, varManager, varLocation));
         }
         return out;
