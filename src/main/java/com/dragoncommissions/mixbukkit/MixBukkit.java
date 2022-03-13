@@ -30,7 +30,7 @@ public class MixBukkit extends JavaPlugin {
     public final static BuildType BUILD_TYPE                        = BuildType.SNAPSHOT;
     public static boolean DEBUG                                     = BUILD_TYPE.isDevBuild();
     public static boolean WRITE_TRANSFORMED_CLASS                   = false;
-    public static boolean SAFE_MODE                                 = !DEBUG;
+    public static boolean SAFE_MODE                                 = true;
     public static Instrumentation INSTRUMENTATION                   = null;
     public static boolean PREPARED                                  = false;
     public static BukkitErrorOutputStream ERROR_OUTPUT_STREAM       = new BukkitErrorOutputStream();

@@ -23,6 +23,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.lang.instrument.ClassDefinition;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -39,6 +40,12 @@ public class MixinPlugin {
     public MixinPlugin(Plugin plugin, ObfMap obfMap) {
         this.plugin = plugin;
         this.obfMap = obfMap;
+    }
+
+    @SneakyThrows
+    public Method getMethod(Class<?> clazz, String methodName, Class<?> returnType, Class<?>... arguments) {
+        String original = obfMap.resolveMapping(new ObfMap.MethodMapping(clazz.getName().replace(".", "/"), ASMUtils.getDescriptor(returnType, arguments), methodName));
+        return clazz.getDeclaredMethod(original, arguments);
     }
 
     @SneakyThrows
