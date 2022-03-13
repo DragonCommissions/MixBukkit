@@ -44,4 +44,9 @@ public @interface ShellCodeInfo {
      */
     boolean calledDirectly() default false;
 
+    /**
+     * @return Is it required to use -noverify in order to load the shellcode
+     */
+    boolean failsClassVerification() default true;
+
 }

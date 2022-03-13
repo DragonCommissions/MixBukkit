@@ -17,20 +17,14 @@ import java.lang.reflect.Modifier;
 @ShellCodeInfo(
         name = "Method Invoke",
         description = "Call methods programmatically",
-        requireVarManager = false,
         stacksContent = {"Return value of invoked method"},
-        requiredStacksContent = {"Object that calls the method", "Arguments (in order)"},
-        calledDirectly = false
+        requiredStacksContent = {"Object that calls the method", "Arguments (in order)"}
 )
-//@AllArgsConstructor
+@AllArgsConstructor
 @Getter
 public class ShellCodeMethodInvoke extends ShellCode {
 
     private Method method;
-
-    public ShellCodeMethodInvoke(Method method) {
-        this.method = method;
-    }
 
     @Override
     public InsnList generate(MethodNode methodNode, LocalVarManager varManager) {

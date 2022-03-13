@@ -5,11 +5,9 @@ import com.dragoncommissions.mixbukkit.addons.AutoMapper;
 import com.dragoncommissions.mixbukkit.api.MixinPlugin;
 import com.dragoncommissions.mixbukkit.api.action.impl.MActionInsertShellCode;
 import com.dragoncommissions.mixbukkit.api.locator.impl.HLocatorTop;
-import com.dragoncommissions.mixbukkit.api.shellcode.impl.api.ShellCodeReflectionPluginMethodCall;
+import com.dragoncommissions.mixbukkit.api.shellcode.impl.api.ShellCodeReflectionMixinPluginMethodCall;
 import net.minecraft.world.damagesource.DamageSource;
-import net.minecraft.world.entity.boss.EnderDragonPart;
 import net.minecraft.world.entity.monster.EnderMan;
-import net.minecraft.world.level.Level;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -27,7 +25,7 @@ public class TestMixin extends JavaPlugin {
             plugin.registerMixin(
                     "Hurt Test",
                     new MActionInsertShellCode(
-                            new ShellCodeReflectionPluginMethodCall(TestMixin.class.getDeclaredMethod("hurt", EnderMan.class, DamageSource.class, float.class), false),
+                            new ShellCodeReflectionMixinPluginMethodCall(TestMixin.class.getDeclaredMethod("hurt", EnderMan.class, DamageSource.class, float.class), false),
                             new HLocatorTop()
                     ),
                     EnderMan.class, // Target class
