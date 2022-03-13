@@ -22,7 +22,7 @@ import org.objectweb.asm.tree.TypeInsnNode;
 )
 @AllArgsConstructor
 @Getter
-public class ShellCodeNewArrayAndAddContent extends ShellCode {
+public class IShellCodeNewArrayAndAddContent extends ShellCode {
 
     private int arraySize;
     private Class<?> type;

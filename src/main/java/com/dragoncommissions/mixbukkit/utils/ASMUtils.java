@@ -1,17 +1,19 @@
 package com.dragoncommissions.mixbukkit.utils;
 
 import com.dragoncommissions.mixbukkit.MixBukkit;
+import com.dragoncommissions.mixbukkit.api.shellcode.impl.inner.IShellCodeLoadClassFromPCL;
+import com.dragoncommissions.mixbukkit.api.shellcode.impl.inner.IShellCodeMethodInvoke;
 import javassist.CtClass;
 import javassist.bytecode.Opcode;
 import lombok.SneakyThrows;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
-import org.objectweb.asm.*;
+import org.objectweb.asm.ClassReader;
+import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.tree.*;
 
 import java.io.File;
 import java.io.FileOutputStream;
-import java.lang.reflect.Method;
 import java.util.UUID;
 
 public class ASMUtils {
@@ -174,16 +176,24 @@ public class ASMUtils {
         else return "";
     }
 
-    public static AbstractInsnNode generateGetClassNode(Class<?> type) {
-        if (type == byte.class) return new FieldInsnNode(Opcode.GETSTATIC, Byte.class.getName().replace(".", "/"), "TYPE", "Ljava/lang/Class;");
-        else if (type == char.class) return new FieldInsnNode(Opcode.GETSTATIC, Character.class.getName().replace(".", "/"), "TYPE", "Ljava/lang/Class;");
-        else if (type == double.class) return new FieldInsnNode(Opcode.GETSTATIC, Double.class.getName().replace(".", "/"), "TYPE", "Ljava/lang/Class;");
-        else if (type == float.class) return new FieldInsnNode(Opcode.GETSTATIC, Float.class.getName().replace(".", "/"), "TYPE", "Ljava/lang/Class;");
-        else if (type == int.class) return new FieldInsnNode(Opcode.GETSTATIC, Integer.class.getName().replace(".", "/"), "TYPE", "Ljava/lang/Class;");
-        else if (type == long.class) return new FieldInsnNode(Opcode.GETSTATIC, Long.class.getName().replace(".", "/"), "TYPE", "Ljava/lang/Class;");
-        else if (type == short.class) return new FieldInsnNode(Opcode.GETSTATIC, Short.class.getName().replace(".", "/"), "TYPE", "Ljava/lang/Class;");
-        else if (type == boolean.class) return new FieldInsnNode(Opcode.GETSTATIC, Boolean.class.getName().replace(".", "/"), "TYPE", "Ljava/lang/Class;");
-        return new LdcInsnNode(Type.getType(type));
+    public static InsnList generateGetClassNode(Class<?> type) {
+        if (type == byte.class) return ASMUtils.asInsnList(new FieldInsnNode(Opcode.GETSTATIC, Byte.class.getName().replace(".", "/"), "TYPE", "Ljava/lang/Class;"));
+        else if (type == char.class) return ASMUtils.asInsnList(new FieldInsnNode(Opcode.GETSTATIC, Character.class.getName().replace(".", "/"), "TYPE", "Ljava/lang/Class;"));
+        else if (type == double.class) return ASMUtils.asInsnList(new FieldInsnNode(Opcode.GETSTATIC, Double.class.getName().replace(".", "/"), "TYPE", "Ljava/lang/Class;"));
+        else if (type == float.class) return ASMUtils.asInsnList(new FieldInsnNode(Opcode.GETSTATIC, Float.class.getName().replace(".", "/"), "TYPE", "Ljava/lang/Class;"));
+        else if (type == int.class) return ASMUtils.asInsnList(new FieldInsnNode(Opcode.GETSTATIC, Integer.class.getName().replace(".", "/"), "TYPE", "Ljava/lang/Class;"));
+        else if (type == long.class) return ASMUtils.asInsnList(new FieldInsnNode(Opcode.GETSTATIC, Long.class.getName().replace(".", "/"), "TYPE", "Ljava/lang/Class;"));
+        else if (type == short.class) return ASMUtils.asInsnList(new FieldInsnNode(Opcode.GETSTATIC, Short.class.getName().replace(".", "/"), "TYPE", "Ljava/lang/Class;"));
+        else if (type == boolean.class) return ASMUtils.asInsnList(new FieldInsnNode(Opcode.GETSTATIC, Boolean.class.getName().replace(".", "/"), "TYPE", "Ljava/lang/Class;"));
+        return new IShellCodeLoadClassFromPCL(type).generate();
+    }
+
+    public static InsnList asInsnList(AbstractInsnNode... nodes) {
+        InsnList list = new InsnList();
+        for (AbstractInsnNode node : nodes) {
+            list.add(node);
+        }
+        return list;
     }
 
     public static InsnList castToObject(int varLocation, Class<?> type) {
@@ -196,6 +206,61 @@ public class ASMUtils {
         return list;
     }
 
+    @SneakyThrows
+    public static Class<?> descriptorToClass(String s) {
+        Class<?> type = null;
+        switch (s) {
+            case "Z" :
+                type = boolean.class;
+                break;
+            case "C" :
+                type = char.class;
+                break;
+            case "B" :
+                type = byte.class;
+                break;
+            case "S" :
+                type = short.class;
+                break;
+            case "I" :
+                type = int.class;
+                break;
+            case "J" :
+                type = long.class;
+                break;
+            case "F" :
+                type = float.class;
+                break;
+            case "D" :
+                type = double.class;
+                break;
+            case "V" :
+                type = void.class;
+                break;
+        }
+        if (s.startsWith("L")) {
+            type = Class.forName(s.substring(1, s.length()-1));
+        }
+        return type;
+    }
+
+    public static Class<?> getReturnType(String descriptor) {
+        String s = descriptor.split("\\)")[1];
+        return descriptorToClass(s);
+    }
+
+    @SneakyThrows
+    public static InsnList cast(Class<?> type) {
+        InsnList out = new InsnList();
+        Class<?> objectedType = ASMUtils.getObjectedType(type);
+        if (objectedType != type) {
+            out.add(new TypeInsnNode(Opcode.CHECKCAST, objectedType.getName().replace(".", "/")));
+            out.add(new IShellCodeMethodInvoke(objectedType.getDeclaredMethod(type.getName() + "Value")).generate());
+        } else {
+            out.add(new TypeInsnNode(Opcode.CHECKCAST, objectedType.getName().replace(".", "/")));
+        }
+        return out;
+    }
 
     public static int getLatestVarNumber(InsnList list) {
         int out = 5;
@@ -205,102 +270,6 @@ public class ASMUtils {
                 out = Math.max(var, out);
             }
         }
-        return out;
-    }
-
-
-    public static InsnList generateMethodCall(MethodNode method, int latestVarCount, Method handler, boolean isTargetStatic) {
-        InsnList out = new InsnList();
-        latestVarCount++;
-        int plugins = latestVarCount++;
-        int varNumOf12 = latestVarCount++;
-        int varNumOf13 = latestVarCount++;
-        int varNumOf14 = latestVarCount++;
-        int varNumOf15 = latestVarCount++;
-        int varNumOf16 = latestVarCount++;
-        int varNumOf17 = latestVarCount++;
-
-        LabelNode label0 = new LabelNode();
-        LabelNode label1 = new LabelNode();
-        LabelNode label2 = new LabelNode();
-        LabelNode label3 = new LabelNode();
-        LabelNode label4 = new LabelNode();
-        LabelNode label5 = new LabelNode();
-        LabelNode label6 = new LabelNode();
-        LabelNode label7 = new LabelNode();
-        LabelNode label8 = new LabelNode();
-        LabelNode label9 = new LabelNode();
-
-        out.add(label0);
-        out.add(new MethodInsnNode(184, "org/bukkit/Bukkit", "getPluginManager", "()Lorg/bukkit/plugin/PluginManager;", false));
-        out.add(new MethodInsnNode(185, "org/bukkit/plugin/PluginManager", "getPlugins", "()[Lorg/bukkit/plugin/Plugin;", true));
-        out.add(new VarInsnNode(58, plugins));
-        out.add(new VarInsnNode(25, plugins));
-        out.add(new InsnNode(190));
-        out.add(new VarInsnNode(54, varNumOf12));
-        out.add(new InsnNode(3));
-        out.add(new VarInsnNode(54, varNumOf13));
-        out.add(label1);
-        out.add(new VarInsnNode(21, varNumOf13));
-        out.add(new VarInsnNode(21, varNumOf12));
-        out.add(new JumpInsnNode(162, label7));
-        out.add(new VarInsnNode(25, plugins));
-        out.add(new VarInsnNode(21, varNumOf13));
-        out.add(new InsnNode(50));
-        out.add(new VarInsnNode(58, varNumOf14));
-        out.add(label2);
-        out.add(new VarInsnNode(25, varNumOf14));
-        out.add(new MethodInsnNode(182, "java/lang/Object", "getClass", "()Ljava/lang/Class;", false));
-        out.add(new MethodInsnNode(182, "java/lang/Class", "getClassLoader", "()Ljava/lang/ClassLoader;", false));
-        out.add(new VarInsnNode(58, varNumOf15));
-        out.add(label3);
-        out.add(new LdcInsnNode(handler.getDeclaringClass().getName()));
-        out.add(new InsnNode(4));
-        out.add(new VarInsnNode(25, varNumOf15));
-        out.add(new MethodInsnNode(184, "java/lang/Class", "forName", "(Ljava/lang/String;ZLjava/lang/ClassLoader;)Ljava/lang/Class;", false));
-        out.add(new VarInsnNode(58, varNumOf16));
-        out.add(label4);
-        out.add(new VarInsnNode(25, varNumOf16));
-        out.add(new LdcInsnNode(handler.getName()));
-        out.add(ASMUtils.pushInt(handler.getParameterTypes().length));
-        out.add(new TypeInsnNode(Opcode.ANEWARRAY, "java/lang/Class"));
-        for (int i = 0; i < handler.getParameterTypes().length; i++) {
-            out.add(new InsnNode(Opcode.DUP));
-            out.add(ASMUtils.pushInt(i));
-            out.add(ASMUtils.generateGetClassNode(handler.getParameterTypes()[i]));
-            out.add(new InsnNode(Opcode.AASTORE));
-        }
-        out.add(new MethodInsnNode(182, "java/lang/Class", "getDeclaredMethod", "(Ljava/lang/String;[Ljava/lang/Class;)Ljava/lang/reflect/Method;", false));
-        out.add(new VarInsnNode(58, varNumOf17));
-        out.add(label5);
-        out.add(new VarInsnNode(25, varNumOf17));
-        out.add(new InsnNode(1));
-        out.add(ASMUtils.pushInt(handler.getParameterTypes().length));
-        out.add(new TypeInsnNode(189, "java/lang/Object"));
-        int baseNumber = isTargetStatic?0:1;
-        for (int i = 0; i < handler.getParameterTypes().length; i++) {
-            out.add(new InsnNode(Opcode.DUP));
-            out.add(ASMUtils.pushInt(i));
-            InsnList list = ASMUtils.castToObject(baseNumber + i, handler.getParameterTypes()[i]);
-            for (AbstractInsnNode insnNode : list) {
-                out.add(insnNode);
-            }
-            out.add(new InsnNode(Opcode.AASTORE));
-        }
-        out.add(new MethodInsnNode(182, "java/lang/reflect/Method", "invoke", "(Ljava/lang/Object;[Ljava/lang/Object;)Ljava/lang/Object;", false));
-        out.add(new InsnNode(87)); // This pops the return value of it
-        out.add(label6);
-        out.add(new JumpInsnNode(167, label7));
-        out.add(label7);
-        out.add(new JumpInsnNode(167, label9));
-        out.add(label8);
-        out.add(new VarInsnNode(58, plugins));
-        out.add(label9);
-        method.tryCatchBlocks.add(new TryCatchBlockNode(label0, label7, label8, "java/lang/Exception"));
-        method.localVariables.add(new LocalVariableNode("classLoader", "Ljava/lang/ClassLoader;", null, label1, label2, varNumOf15));
-        method.localVariables.add(new LocalVariableNode("loadedClass", "Ljava/lang/Class;", "Ljava/lang/Class<*>;", label3, label2, varNumOf16));
-        method.localVariables.add(new LocalVariableNode("methodNameHere", "Ljava/lang/reflect/Method;", null, label4, label2, varNumOf17));
-        method.localVariables.add(new LocalVariableNode("plugin", "Lorg/bukkit/plugin/Plugin;", null, label5, label2, varNumOf14));
         return out;
     }
 

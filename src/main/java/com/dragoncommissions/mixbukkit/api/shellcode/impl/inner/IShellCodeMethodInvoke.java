@@ -22,7 +22,7 @@ import java.lang.reflect.Modifier;
 )
 @AllArgsConstructor
 @Getter
-public class ShellCodeMethodInvoke extends ShellCode {
+public class IShellCodeMethodInvoke extends ShellCode {
 
     private Method method;
 

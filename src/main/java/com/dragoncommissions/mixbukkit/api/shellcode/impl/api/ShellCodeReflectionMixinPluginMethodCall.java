@@ -3,18 +3,22 @@ package com.dragoncommissions.mixbukkit.api.shellcode.impl.api;
 import com.dragoncommissions.mixbukkit.api.shellcode.LocalVarManager;
 import com.dragoncommissions.mixbukkit.api.shellcode.ShellCode;
 import com.dragoncommissions.mixbukkit.api.shellcode.ShellCodeInfo;
-import com.dragoncommissions.mixbukkit.api.shellcode.impl.inner.ShellCodeMethodInvoke;
-import com.dragoncommissions.mixbukkit.api.shellcode.impl.inner.ShellCodeNewArrayAndAddContent;
-import com.dragoncommissions.mixbukkit.api.shellcode.impl.inner.ShellCodeReflectionMethodInvoke;
+import com.dragoncommissions.mixbukkit.api.shellcode.impl.inner.IShellCodeMethodInvoke;
+import com.dragoncommissions.mixbukkit.api.shellcode.impl.inner.IShellCodeReflectionMethodInvoke;
 import com.dragoncommissions.mixbukkit.utils.ASMUtils;
+import javassist.bytecode.Opcode;
 import lombok.AllArgsConstructor;
 import lombok.SneakyThrows;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.PluginManager;
+import org.objectweb.asm.tree.FieldInsnNode;
 import org.objectweb.asm.tree.InsnList;
 import org.objectweb.asm.tree.MethodNode;
+import org.objectweb.asm.tree.VarInsnNode;
 
 import java.lang.reflect.Method;
+
+import static javassist.bytecode.Opcode.GETSTATIC;
 
 @ShellCodeInfo(
         name = "Reflection Mixin Plugin Method Call",
@@ -40,94 +44,39 @@ public class ShellCodeReflectionMixinPluginMethodCall extends ShellCode {
     @Override
     @SneakyThrows
     public InsnList generate(MethodNode methodNode, LocalVarManager varManager) {
-//        LabelNode toTry = new LabelNode();
-//        LabelNode onError = new LabelNode();
-//        LabelNode afterTry = new LabelNode();
-//        LabelNode finishExecution = new LabelNode();
-//
-//        methodNode.tryCatchBlocks.add(new TryCatchBlockNode(toTry, onError, onError, Throwable.class.getName().replace(".", "/")));
-//        int plugins = varManager.allocateVarNumber();
-//        int pluginsLength = varManager.allocateVarNumber();
-//        int i = varManager.allocateVarNumber();
-//        int classLoader = varManager.allocateVarNumber();
-//        int method = varManager.allocateVarNumber();
-//
         InsnList out = new InsnList();
-//
-//        // Init "i" variable for "for" loop
-//        // (init i variable for for loop, without quotes it sounds confusing lol)
-//        out.add(new ShellCodePushInt(0).generate());
-//        out.add(new VarInsnNode(Opcode.ISTORE, i));
-//        out.add(new InsnNode(Opcode.ACONST_NULL));
-//        out.add(new VarInsnNode(Opcode.ASTORE, method));
-//
-//        // Get plugins
-//        out.add(getPlugins());
-//        out.add(new InsnNode(Opcode.DUP)); // Duplicate result of getPlugins for further use (get length of it)
-//        out.add(new VarInsnNode(Opcode.ASTORE, plugins));
-//
-//        // Get length of it
-//        out.add(new InsnNode(Opcode.ARRAYLENGTH));
-//        out.add(new VarInsnNode(Opcode.ISTORE, pluginsLength));
-//
-//        // Start trying
-//        out.add(toTry);
-//        // Get the class of the method and push to stack
-//        out.add(new VarInsnNode(Opcode.ALOAD, plugins));
-//        out.add(new VarInsnNode(Opcode.ILOAD, i));
-//        out.add(new VarInsnNode(Opcode.ILOAD, i)); // Start i++
-//        out.add(new ShellCodePushInt(1).generate());
-//        out.add(new InsnNode(Opcode.IADD));
-//        out.add(new VarInsnNode(Opcode.ISTORE, i));
-//        out.add(new InsnNode(Opcode.AALOAD));
-//        out.add(new ShellCodeMethodInvoke(Object.class.getDeclaredMethod("getClass")).generate());
-//        out.add(new ShellCodeMethodInvoke(Class.class.getDeclaredMethod("getClassLoader")).generate());
-//        out.add(new VarInsnNode(Opcode.ASTORE, classLoader));
-//        out.add(new LdcInsnNode(handler.getDeclaringClass().getName()));
-//        out.add(new ShellCodePushInt(1).generate()); // true
-//        out.add(new VarInsnNode(Opcode.ALOAD, classLoader));
-//        out.add(new ShellCodeMethodInvoke(Class.class.getDeclaredMethod("forName", String.class, boolean.class, ClassLoader.class)).generate());
-//        // Get the method, and push it to stack
-//        out.add(new LdcInsnNode(handler.getName()));
-//        out.add(new ShellCodeNewArrayAndAddContent(handler.getParameterTypes().length, Class.class, index -> {
-//            InsnList list = new InsnList();
-//            list.add(ASMUtils.generateGetClassNode(handler.getParameterTypes()[index]));
-//            return list;
-//        }).generate());
-//        out.add(new ShellCodeMethodInvoke(Class.class.getDeclaredMethod("getDeclaredMethod", String.class, Class[].class)).generate());
-//        out.add(new VarInsnNode(Opcode.ASTORE, method));
-//        out.add(new JumpInsnNode(Opcode.GOTO, finishExecution));
-//
-//        // What will happen if anything happens on trying
-//        out.add(onError);
-//        out.add(new ShellCodeMethodInvoke(Throwable.class.getDeclaredMethod("printStackTrace")).generate());
-//        out.add(new JumpInsnNode(Opcode.GOTO, afterTry));
-//
-//        out.add(afterTry);
-//        // if i < pluginsLength -> go toTry & execute i++
-//        out.add(new VarInsnNode(Opcode.ILOAD, i));
-//        out.add(new VarInsnNode(Opcode.ILOAD, pluginsLength));
-//        out.add(new JumpInsnNode(Opcode.IF_ICMPLT, toTry));
-//        // Or.. if not, count it as finish execution, and throw NPE if method is not found
-//        out.add(new JumpInsnNode(Opcode.GOTO, finishExecution));
-//
-//        out.add(finishExecution);
-//        // Call the method!
-//        out.add(new VarInsnNode(Opcode.ALOAD, method));
-//        out.add(new InsnNode(Opcode.ACONST_NULL));
-        out.add(new ShellCodeNewArrayAndAddContent(handler.getParameterTypes().length, Object.class, index -> {
-            return ASMUtils.castToObject(index, handler.getParameterTypes()[index]);
-        }).generate());
-        out.add(new ShellCodeReflectionMethodInvoke(handler).generate());
-
+        Class<?>[] parameterTypes = handler.getParameterTypes();
+        boolean hasCallBackInfo = false;
+        for (int i = 0; i < parameterTypes.length; i++) {
+            Class<?> parameterType = parameterTypes[i];
+            if (CallbackInfo.class.isAssignableFrom(parameterType) && i == parameterTypes.length - 1) {
+                out.add(CallbackInfo.generateCallBackInfo());
+                hasCallBackInfo = true;
+            } else {
+                out.add(ASMUtils.castToObject(i, parameterType));
+            }
+        }
+        IShellCodeReflectionMethodInvoke shellCodeReflectionMethodInvoke = new IShellCodeReflectionMethodInvoke(handler);
+        out.add(shellCodeReflectionMethodInvoke.generate(methodNode, varManager));
+        if (hasCallBackInfo) {
+            Integer varLocation = shellCodeReflectionMethodInvoke.getArgumentVarIndex().get(parameterTypes.length - 1);
+            out.add(new FieldInsnNode(GETSTATIC, "java/lang/System", "out", "Ljava/io/PrintStream;"));
+            out.add(new VarInsnNode(Opcode.ALOAD, varLocation));
+            out.add(new IShellCodeMethodInvoke(Object.class.getDeclaredMethod("getClass")).generate());
+            out.add(new IShellCodeMethodInvoke(Class.class.getDeclaredMethod("getName")).generate());
+            out.add(CallbackInfo.processCallBackInfo(methodNode, varManager, varLocation));
+        }
         return out;
     }
 
     @SneakyThrows
     private static InsnList getPlugins() {
         InsnList out = new InsnList();
-        out.add(new ShellCodeMethodInvoke(Bukkit.class.getDeclaredMethod("getPluginManager")).generate());
-        out.add(new ShellCodeMethodInvoke(PluginManager.class.getDeclaredMethod("getPlugins")).generate());
+        out.add(new IShellCodeMethodInvoke(Bukkit.class.getDeclaredMethod("getPluginManager")).generate());
+        out.add(new IShellCodeMethodInvoke(PluginManager.class.getDeclaredMethod("getPlugins")).generate());
         return out;
     }
+
+
+
 }

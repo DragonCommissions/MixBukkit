@@ -17,7 +17,7 @@ import org.objectweb.asm.tree.MethodNode;
 )
 @AllArgsConstructor
 @Getter
-public class ShellCodePushInt extends ShellCode {
+public class IShellCodePushInt extends ShellCode {
 
     private int value;
 

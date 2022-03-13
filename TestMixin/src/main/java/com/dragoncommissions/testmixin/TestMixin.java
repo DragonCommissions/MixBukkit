@@ -5,6 +5,7 @@ import com.dragoncommissions.mixbukkit.addons.AutoMapper;
 import com.dragoncommissions.mixbukkit.api.MixinPlugin;
 import com.dragoncommissions.mixbukkit.api.action.impl.MActionInsertShellCode;
 import com.dragoncommissions.mixbukkit.api.locator.impl.HLocatorTop;
+import com.dragoncommissions.mixbukkit.api.shellcode.impl.api.CallbackInfo;
 import com.dragoncommissions.mixbukkit.api.shellcode.impl.api.ShellCodeReflectionMixinPluginMethodCall;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.monster.EnderMan;
@@ -25,7 +26,7 @@ public class TestMixin extends JavaPlugin {
             plugin.registerMixin(
                     "Hurt Test",
                     new MActionInsertShellCode(
-                            new ShellCodeReflectionMixinPluginMethodCall(TestMixin.class.getDeclaredMethod("hurt", EnderMan.class, DamageSource.class, float.class), false),
+                            new ShellCodeReflectionMixinPluginMethodCall(TestMixin.class.getDeclaredMethod("hurt", EnderMan.class, DamageSource.class, float.class, CallbackInfo.class), false),
                             new HLocatorTop()
                     ),
                     EnderMan.class, // Target class
@@ -39,8 +40,10 @@ public class TestMixin extends JavaPlugin {
     }
 
 
-    public static void hurt(EnderMan test, DamageSource damageSource, float damage) {
+    public static void hurt(EnderMan test, DamageSource damageSource, float damage, CallbackInfo callBackInfo) {
         Bukkit.broadcastMessage(test.getDisplayName().getString() + " gets hurt from " + damageSource.getMsgId() + "  (Damage amount: " + damage + ")");
+        callBackInfo.setReturned(true);
+        callBackInfo.setReturnValue(false);
     }
 
 
