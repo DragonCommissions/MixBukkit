@@ -10,22 +10,25 @@ import org.objectweb.asm.tree.MethodInsnNode;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Predicate;
 
 @AllArgsConstructor
 public class HLocatorMethodInvoke implements HookLocator {
 
     private Method method;
     private PostPreState state;
+    private Predicate<Integer> filter;
 
     @Override
     public List<Integer> getLineNumber(InsnList insnList) {
+        int amount = 0;
         String owner = method.getDeclaringClass().getName().replace(".", "/");
         String desc = ASMUtils.getDescriptor(method.getReturnType(), method.getParameterTypes());
         List<Integer> out = new ArrayList<>();
         for (int i = 0; i < insnList.size(); i++) {
             if (insnList.get(i) instanceof MethodInsnNode) {
                 MethodInsnNode insnNode = (MethodInsnNode) insnList.get(i);
-                if (insnNode.owner.equals(owner) && insnNode.name.equals(method.getName()) && insnNode.desc.equals(desc)) {
+                if (insnNode.owner.equals(owner) && insnNode.name.equals(method.getName()) && insnNode.desc.equals(desc) && filter.test(amount++)) {
                     out.add(i + (state == PostPreState.POST?1:0));
                 }
             }
