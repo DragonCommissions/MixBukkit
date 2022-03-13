@@ -8,7 +8,6 @@ import com.google.gson.JsonObject;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.SneakyThrows;
-import org.apache.commons.io.IOUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.eclipse.jgit.api.Git;
@@ -17,7 +16,10 @@ import java.io.*;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.file.Files;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -49,12 +51,12 @@ public class AutoMapper {
     }
     @SneakyThrows
     private static void prepareMapping() {
-        Bukkit.getConsoleSender().sendMessage(ChatColor.YELLOW + "[!] Detecting mapping...");
+        Bukkit.getConsoleSender().sendMessage(ChatColor.YELLOW + "[!] Detecting mapping info...");
         if (!shouldLoadMapping()) {
             Bukkit.getConsoleSender().sendMessage(ChatColor.GREEN + "[!] You don't need any mapping for this build!");
             return;
         }
-        Bukkit.getConsoleSender().sendMessage(ChatColor.YELLOW + "[!] Detecting mapping...");
+        Bukkit.getConsoleSender().sendMessage(ChatColor.YELLOW + "[!] Mappings required! Preparing mapping...");
         mappingFile = new File("mappings.csrg");
         if (mappingFile.exists()) {
             if (!mappingFile.isDirectory()) {
