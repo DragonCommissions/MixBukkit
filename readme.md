@@ -9,6 +9,7 @@ In theory, it should work from Java 8 ~ Java latest, Linux & Windows & MacOS, bu
 Minecraft version is not limited, but it will result in mapping different
 
 ## Basic Usage
+(Please check `docs/Getting Started.md` for more information)
 ### Mapping
 #### Method 1. Use Spigot's Members Mapping
 If you want to make things easy/fast/good/great/simple, you can use this method.

@@ -1,5 +1,7 @@
 # Getting Started
 In this tutorial, I'll be teaching you how to start coding your first mixin plugin!
+## Out of date
+This document is outdated. Require an update.
 
 ## Requirements
 1. Some basic Java knowledge

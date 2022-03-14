@@ -1,4 +1,4 @@
-package com.dragoncommissions.testmixin.mixins;
+package com.dragoncommissions.testmixin.examples;
 
 import com.dragoncommissions.mixbukkit.api.MixinPlugin;
 import com.dragoncommissions.mixbukkit.api.action.impl.MActionInsertShellCode;
@@ -21,6 +21,29 @@ public class EDragonArrowShieldRemover {
                             new HLocatorHead()
                     ), AbstractDragonSittingPhase.class, "onHurt", float.class, DamageSource.class, float.class);
     }
+
+    /*
+     Original Sourcecode of AbstractDragonSittingPhase#onHurt(DamageSource, float):
+     public float onHurt(DamageSource var0, float var1) {
+         if (var0.getDirectEntity() instanceof AbstractArrow) {   // A
+            var0.getDirectEntity().setSecondsOnFire(1);   // B
+            return 0.0F;    // C
+         } else {
+            return super.onHurt(var0, var1);
+         }
+     }
+
+
+     this code prevents players from attacking dragons with arrows while dragon is in sitting phase.
+     There's no way to make it possible with vanilla bukkit API other than tracing down EnderDragon#hurt(EnderDragonPart, DamageSource, float)
+     Well, that's not a good idea.
+
+     In this case, Mixin is the best solution (if you are fine making it only works with 1 version)
+
+     In this mixin, it modifies the original onHurt method, makes a call to EDragonArrowShieldRemover#onHurt(AbstractDragonSittingPhase, DamageSource, float, CallbackInfo)
+     It checks of the damage source is arrow, if it is then it will return the original damage instead of 0 (0 is returned in vanilla if source is arrow)
+     Since the "A" will never be called, the arrow will never bounce off again.
+     */
 
     public static void onHurt(AbstractDragonSittingPhase phase, DamageSource source, float damage, CallbackInfo info) {
         if (source.getDirectEntity() instanceof AbstractArrow) {

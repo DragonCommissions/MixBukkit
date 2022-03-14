@@ -12,7 +12,6 @@ import org.objectweb.asm.tree.MethodNode;
 
 import java.lang.reflect.Method;
 
-@SuppressWarnings("Untested")
 public class MActionMethodReplacer implements MixinAction {
 
     private Method handler;
