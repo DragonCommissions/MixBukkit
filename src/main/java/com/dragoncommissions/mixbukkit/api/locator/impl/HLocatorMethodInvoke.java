@@ -3,8 +3,6 @@ package com.dragoncommissions.mixbukkit.api.locator.impl;
 import com.dragoncommissions.mixbukkit.api.locator.HookLocator;
 import com.dragoncommissions.mixbukkit.utils.ASMUtils;
 import com.dragoncommissions.mixbukkit.utils.PostPreState;
-import com.google.common.base.Predicate;
-import lombok.AllArgsConstructor;
 import org.objectweb.asm.tree.InsnList;
 import org.objectweb.asm.tree.MethodInsnNode;
 
@@ -25,12 +23,16 @@ public class HLocatorMethodInvoke implements HookLocator {
         owner = method.getDeclaringClass().getName().replace(".", "/");
         desc = ASMUtils.getDescriptor(method.getReturnType(), method.getParameterTypes());
         name = method.getName();
+        this.filter = filter;
+        this.state = state;
     }
 
     public HLocatorMethodInvoke(Class<?> owner, Method method, PostPreState state, Predicate<Integer> filter) {
         this.owner = owner.getName().replace(".", "/");
         desc = ASMUtils.getDescriptor(method.getReturnType(), method.getParameterTypes());
         name = method.getName();
+        this.filter = filter;
+        this.state = state;
     }
 
     @Override
