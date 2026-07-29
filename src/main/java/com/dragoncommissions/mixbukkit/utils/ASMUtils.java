@@ -238,7 +238,8 @@ public class ASMUtils {
                 break;
         }
         if (s.startsWith("L")) {
-            type = Class.forName(s.substring(1, s.length()-1));
+            String name = s.substring(1, s.length()-1).replace('/', '.');;
+            type = Class.forName(name.replace('/', '.'));
         }
         return type;
     }
